@@ -1,0 +1,8 @@
+Project name: Order app
+technologies used:
+- Typescript
+- sequelize and sequelize-cli
+  + generate and migrate database
+- node js
+- express js
+- MySQL

@@ -11,6 +11,10 @@ module.exports = {
 			},
 			fullname: {
 				type: Sequelize.STRING,
+				// unique: true,
+				// validate: {
+				// 	isFullName: true,
+				// },
 			},
 			email: {
 				type: Sequelize.STRING,
@@ -21,7 +25,7 @@ module.exports = {
 			confirmpassword: {
 				type: Sequelize.STRING,
 			},
-			role_code: { type: Sequelize.STRING },
+			role_code: { type: Sequelize.STRING, defaultValue: 'RU' },
 			avatar: { type: Sequelize.STRING },
 			createdAt: {
 				allowNull: false,

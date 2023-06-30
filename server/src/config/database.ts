@@ -1,4 +1,3 @@
-
 module.exports = {
 	host: 'localhost',
 	username: 'root',
@@ -13,3 +12,4 @@ module.exports = {
 		idle: 10000,
 	},
 };
+

@@ -1,0 +1,21 @@
+GET http://localhost:3000/api/v1/user/
+Authorization: Dearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTEsImVtYWlsIjoia2hvYWtob2ExMjM0MTJAZ21haWwuY29tIiwicm9sZV9jb2RlIjoiUlUiLCJpYXQiOjE2ODc0MTAyNjksImV4cCI6MTY4Nzg0MjI2OX0.X6eAk2h242zvpZhLgzZrQVq95-7xOilxQSWQtZTJNa4
+
+
+
+
+POST http://localhost:3000/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "phamk123@gmail.com",
+  "password": "12321312"
+}
+
+POST http://localhost:3000/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "phamk123@gmail.com",
+  "password": "12321312"
+}

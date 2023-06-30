@@ -1,27 +1,58 @@
-import { Sequelize } from 'sequelize';
-// import dbConfig from '../config/database';
+// 'use strict';
+import { Sequelize, DataTypes } from 'sequelize';
+import fs from 'fs';
+import path from 'path';
 
-const dbConfig = require('../config/database');
+const databaseConnection = require('../config/database');
 
-const sequelize = new Sequelize(
-	dbConfig.database,
-	dbConfig.username,
-	dbConfig.password,
-	{
-		host: dbConfig.host,
-		dialect: 'mysql',
-		port: dbConfig.port
+const basename = path.basename(__filename);
+// const env = process.env.NODE_ENV || 'development';
+// const config = require(__dirname + '/../config/database.json')[env];
+
+const dbHost = databaseConnection.host;
+const dbUserName = databaseConnection.username;
+const dbPassword = databaseConnection.password;
+const database = databaseConnection.database;
+
+const sequelize = new Sequelize(database, dbUserName, dbPassword, {
+	host: dbHost,
+	dialect: 'mysql',
+	pool: {
+		max: 5,
+		min: 0,
+		acquire: 30000,
+		idle: 10000,
+	},
+});
+
+try {
+	sequelize.authenticate();
+	console.log('Connection has been established successfully.');
+} catch (error) {
+	if (error instanceof Error)
+		console.error('Unable to connect to the database:', error.message);
+}
+const db: any = { sequelize, Sequelize };
+try {
+	fs.readdirSync(__dirname)
+		.filter((file) => {
+			return (
+				file.indexOf('.') !== 0 && file !== basename && file.slice(-3) === '.js'
+			);
+		})
+		.forEach((file) => {
+			const model = require(path.join(__dirname, file))(sequelize, DataTypes);
+			db[model.name] = model;
+		});
+} catch (error) {
+	if (error instanceof Error)
+		console.log('Unable to read the data file', error.message);
+}
+
+Object.keys(db).forEach((modelName) => {
+	if (db[modelName].associate) {
+		db[modelName].associate(db);
 	}
-);
+});
 
-const connectionDB = async () => {
-	try {
-		await sequelize.authenticate();
-		console.log('Connection has been established successfully!');
-	} catch (error: any) {
-		if (error instanceof Error)
-			console.error('Unable to connect to the database', error.message);
-	}
-};
-
-connectionDB();
+export default db;

@@ -2,8 +2,9 @@ import express, { Application } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import * as dotenv from 'dotenv';
-
+import initRoutes from './routes';
 require('./models/index');
+
 dotenv.config({ path: __dirname + '/.env' });
 
 const app: Application = express();
@@ -28,3 +29,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.listen(PORT, () => {
 	console.log(`Server is up on port: ${host}:${PORT}`);
 });
+
+// Set routes
+initRoutes(app);

@@ -1,0 +1,25 @@
+{
+	"extends": "expo/tsconfig.base",
+	"compilerOptions": {
+		"strict": true,
+		"target": "es2016" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
+		"lib": [
+			"es6"
+		] /* Specify a set of bundled library declaration files that describe the target runtime environment. */,
+		"rootDirs": [
+			"./src"
+		] /* Allow multiple folders to be treated as one when resolving modules. */,
+		"typeRoots": [
+			"./src/types",
+			"./node_modules/@types"
+		] /* Specify multiple folders that act like './node_modules/@types'. */,
+
+		"module": "CommonJS",
+		"allowJs": true,
+		"outDir": "./build",
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"noImplicitAny": true,
+		"skipLibCheck": true
+	}
+}

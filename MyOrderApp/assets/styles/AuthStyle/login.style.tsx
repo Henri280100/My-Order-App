@@ -35,7 +35,7 @@ const loginStyles = StyleSheet.create({
 	},
 
 	loginFramePosition: {
-		width: 392,
+		width: 390,
 		left: 1,
 		position: 'absolute',
 		alignItems: 'center',
@@ -125,7 +125,7 @@ const loginStyles = StyleSheet.create({
 	},
 	forgotPassword: {
 		top: 396,
-		left: 244,
+		left: 104,
 		color: Color.mediumslateblue,
 		fontSize: FontSize.size_sm,
 	},
@@ -178,7 +178,7 @@ const loginStyles = StyleSheet.create({
 	},
 
 	google: {
-		top: 578,
+		top: 550,
 		left: 138,
 		width: 138,
 		position: 'absolute',
@@ -273,8 +273,24 @@ const loginStyles = StyleSheet.create({
 	emailphoneGroup: {
 		top: 296,
 	},
+	loginFrameLayout: {
+		width: 390,
+		left: 1,
+		position: 'absolute',
+		top: 0,
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	signupFrameLayout: {
+		width: 390,
+		left: 1,
+		position: 'absolute',
+		top: 0,
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
 	loginFrameItem: {
-		top: 90,
+		top: 70,
 		borderTopLeftRadius: Border.br_xl,
 		borderTopRightRadius: Border.br_xl,
 		backgroundColor: '#fff',
@@ -287,6 +303,7 @@ const loginStyles = StyleSheet.create({
 		overflow: 'hidden',
 		width: '100%',
 	},
+	
 });
 
 export default loginStyles;

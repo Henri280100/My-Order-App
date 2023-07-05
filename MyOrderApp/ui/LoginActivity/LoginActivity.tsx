@@ -1,23 +1,42 @@
-import { Button, Text, TextInput, View } from 'react-native';
+import { Button, Text, StyleSheet, View, Pressable } from 'react-native';
 import loginStyles from '../../assets/styles/LoginActivityStyle/login.style';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts } from 'expo-font';
 import { useState } from 'react';
-import { Icon, Input, NativeBaseProvider, Pressable } from 'native-base';
+import { Checkbox, Icon, Input, Link, NativeBaseProvider } from 'native-base';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import SocialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const LoginActivity = () => {
 	const [show, setShow] = useState(false);
+	const [showRegister, setShowRegister] = useState(false);
 	const [loaded] = useFonts({
 		'Poppins-Medium': require('../../assets/fonts/Poppins-Medium.ttf'),
 	});
 
-	const [email, onChangeEmail] = useState('');
-
 	if (!loaded) {
 		return null;
 	}
+
+	const changeAuthBehavior = StyleSheet.create({
+		loginStyleBehavoir: {
+			top: 27,
+			left: 32,
+			width: 85,
+			height: 2,
+			backgroundColor: showRegister ? 'white' : '#de3905',
+		},
+
+		registerStyleBehavior: {
+			top: 27,
+			left: 32,
+			width: 85,
+			height: 2,
+			backgroundColor: showRegister ? '#de3905' : 'white',
+		},
+	});
+
 	return (
 		<LinearGradient
 			style={loginStyles.loginFrame}
@@ -26,41 +45,35 @@ const LoginActivity = () => {
 			<View
 				style={[loginStyles.loginFrameItem, loginStyles.loginFramePosition]}
 			/>
+			<NativeBaseProvider>
+				<Link
+					style={[
+						loginStyles.forgotPassword,
+						loginStyles.forgotPasswordFlexBox,
+					]}
+					href=""
+				>
+					Forgot password?
+				</Link>
+			</NativeBaseProvider>
 
-			<Text
-				style={[loginStyles.forgotPassword, loginStyles.forgotPasswordFlexBox]}
-			>
-				Forgot password?
-			</Text>
 			<View style={loginStyles.remembeRme}>
 				<Text style={[loginStyles.remeberMe, loginStyles.orTypo]}>
 					Remeber me
 				</Text>
 				<View style={loginStyles.remembeRmeInner}>
-					<View style={loginStyles.instanceChild} />
+					<NativeBaseProvider>
+						<Checkbox
+							value="test"
+							style={loginStyles.instanceChild}
+							accessibilityLabel="This is a dummy checkbox"
+						/>
+					</NativeBaseProvider>
 				</View>
 			</View>
 			<View style={loginStyles.google}>
-				<View style={[loginStyles.shadow, loginStyles.shadowLayout]} />
-				<View style={[loginStyles.googleChild, loginStyles.emailphoneBg]} />
-				<Text
-					style={[
-						loginStyles.continueWithGoogleContainer,
-						loginStyles.forgotPasswordFlexBox,
-					]}
-				>
-					<Text style={loginStyles.continueWithGoogleContainer1}>
-						<Text style={loginStyles.continueWith}>{`continue with `}</Text>
-						<Text style={[loginStyles.google1, loginStyles.google1Typo]}>
-							<Text style={loginStyles.g}>G</Text>
-							<Text style={loginStyles.o}>o</Text>
-							<Text style={loginStyles.o1}>o</Text>
-							<Text style={loginStyles.g}>g</Text>
-							<Text style={loginStyles.l}>l</Text>
-							<Text style={loginStyles.o}>e</Text>
-						</Text>
-					</Text>
-				</Text>
+				<SocialIcon name="gmail" size={40} color="red" />
+				<SocialIcon name="facebook" size={40} color="blue" />
 			</View>
 			<View style={[loginStyles.orParent, loginStyles.loginLayout]}>
 				<Text style={[loginStyles.or, loginStyles.orTypo]}>OR</Text>
@@ -68,15 +81,22 @@ const LoginActivity = () => {
 				<View style={[loginStyles.groupItem, loginStyles.groupLayout]} />
 			</View>
 			<View style={[loginStyles.login, loginStyles.loginLayout]}>
-				<Text style={[loginStyles.login1, loginStyles.login1Layout]}>
-					Login
-				</Text>
-				<View style={loginStyles.loginChild} />
+				<Pressable
+					style={[loginStyles.login1, loginStyles.login1Layout]}
+					onPress={() => setShowRegister(false)}
+				>
+					<Text>{'Login'}</Text>
+				</Pressable>
+				<Text style={[changeAuthBehavior.loginStyleBehavoir]} />
 			</View>
 			<View style={[loginStyles.signUp, loginStyles.login1Layout]}>
-				<Text style={[loginStyles.login1, loginStyles.login1Layout]}>
-					Sign up
-				</Text>
+				<Pressable
+					style={[loginStyles.login1, loginStyles.login1Layout]}
+					onPress={() => setShowRegister(true)}
+				>
+					<Text>{'Signup'}</Text>
+				</Pressable>
+				<Text style={[changeAuthBehavior.registerStyleBehavior]} />
 			</View>
 			<View style={loginStyles.button}>
 				<Button title="Login" color="red"></Button>

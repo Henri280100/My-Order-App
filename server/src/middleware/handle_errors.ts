@@ -34,3 +34,17 @@ export const notAuth = (err: any, res: Response) => {
 		mess: error.message,
 	});
 };
+
+export const tokenIsExpired = (
+	err: any,
+	res: Response,
+	isTokenExpired: any
+) => {
+	const error = createHttpError.Unauthorized(err);
+	return res.status(error.status).json({
+		// 1: when the token is invalid
+		// 2: when token is expired
+		err: isTokenExpired ? 2 : 1,
+		mess: error.message,
+	});
+};

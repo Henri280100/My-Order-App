@@ -18,3 +18,5 @@ export const confirmpassword = joi
 	.equal(joi.ref('password'))
 	.required()
 	.options({ messages: { 'any.only': '{{#label}} does not match' } });
+
+export const validateRefreshToken = joi.string().required();

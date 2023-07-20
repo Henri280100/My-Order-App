@@ -8,10 +8,6 @@ const initRoutes = (app: Application) => {
 	app.use('/api/v1/user', user);
 
 	app.use('/', notFound);
-
-	// return app.use('/', (req: Request, res: Response) => {
-	// 	return res.send('SERVER ON');
-	// });
 };
 
 export default initRoutes;

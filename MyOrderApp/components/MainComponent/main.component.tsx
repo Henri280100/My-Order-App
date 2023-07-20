@@ -5,11 +5,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts } from 'expo-font';
 import { useEffect, useState } from 'react';
 
-export default function MainActivity({ navigation }: any) {
+export default function MainComponent({ navigation }: any) {
 	const [animating, setAnimating] = useState(false);
 
 	setTimeout(() => {
-		navigation.navigate('LoginActivity');
+		navigation.navigate('LoginComponent');
 	}, 4000);
 	const [loaded] = useFonts({
 		'Poppins-Medium': require('../../assets/fonts/Poppins-Medium.ttf'),

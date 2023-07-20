@@ -6,7 +6,13 @@ export const getOne = (userId: number) =>
 			const response = await db.User.findOne({
 				where: { id: userId },
 				attributes: {
-					exclude: ['password', 'role_code', 'createdAt', 'updatedAt'],
+					exclude: [
+						'password',
+						'role_code',
+						'createdAt',
+						'updatedAt',
+						'refresh_token',
+					],
 				},
 				include: [
 					{
@@ -16,6 +22,7 @@ export const getOne = (userId: number) =>
 					},
 				],
 			});
+			console.log(222, response);
 			resolve({
 				err: response ? 0 : 1,
 				mess: response ? 'Avaliable user' : 'Invalid user',

@@ -1,8 +1,5 @@
-import Navigation from './ui/Navigation';
+import Navigation from '././components/Navigation';
 
 export default function App() {
-	return (
-	
-		<Navigation></Navigation>
-	);
+	return <Navigation></Navigation>;
 }

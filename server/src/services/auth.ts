@@ -1,9 +1,9 @@
 import bycrypt from 'bcrypt';
 import * as dotenv from 'dotenv';
-import Mailgen from 'mailgen';
 import db from '../models';
 import jwt from 'jsonwebtoken';
-import { sendingMail } from '../../nodemailer/mailing';
+import { sendingMail } from '../../helpers/mailing';
+import { emailVerifyGen } from '../../helpers/mail.generator';
 
 dotenv.config({ path: __dirname + '/.env' });
 
@@ -13,14 +13,6 @@ const hashPassword = (password: any) =>
 export const register = ({ fullname, email, password, confirmpassword }: any) =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const mailGenerator = new Mailgen({
-				theme: 'default',
-				product: {
-					name: 'Order App',
-					link: 'https://mailgen.js/',
-				},
-			});
-
 			const response = await db.User.findOrCreate({
 				where: { email, confirmpassword },
 				defaults: {
@@ -46,7 +38,7 @@ export const register = ({ fullname, email, password, confirmpassword }: any) =>
 							role_code: response[0].role_code,
 						},
 						process.env.JWT_SECRET as string,
-						{ expiresIn: '60s' }
+						{ expiresIn: '24h' }
 				  )
 				: null;
 
@@ -60,29 +52,27 @@ export const register = ({ fullname, email, password, confirmpassword }: any) =>
 				  )
 				: null;
 
-			const responseMail = {
-				body: {
-					name: `${fullname}`,
-					intro: 'Welcome to Order app!',
-					action: {
-						instructions:
-							'To continue to complete your profile, please verify your account here',
-						button: {
-							color: '#22BC66',
-							text: 'Confirm your verification',
-							link: `http://localhost:3000/api/v1/auth/verify/${response[0].id}/${accessToken}`,
-						},
-					},
-				},
-			};
-
-			const generateMail = mailGenerator.generate(responseMail);
+			// const responseMail = {
+			// 	body: {
+			// 		name: `${fullname}`,
+			// 		intro: 'Welcome to Order app!',
+			// 		action: {
+			// 			instructions:
+			// 				'To continue to complete your profile, please verify your account here',
+			// 			button: {
+			// 				color: '#22BC66',
+			// 				text: 'Confirm your verification',
+			// 				link: `http://localhost:3000/api/v1/auth/verify/${response[0].id}/${accessToken}`,
+			// 			},
+			// 		},
+			// 	},
+			// };
 
 			const mail = await sendingMail({
 				from: process.env.EMAIL_ID,
 				to: `${email}`,
 				subject: 'Account verification',
-				html: generateMail,
+				html: emailVerifyGen({ fullname, id: response[0].id, accessToken }),
 			});
 
 			resolve({
@@ -131,7 +121,7 @@ export const login = ({ email, password }: any) =>
 							role_code: response.role_code,
 						},
 						process.env.JWT_SECRET as string,
-						{ expiresIn: '60s' }
+						{ expiresIn: '24h' }
 				  )
 				: null;
 
@@ -278,12 +268,36 @@ export const forgotPassword = ({
 }: any) =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const response = await db.User.findOne({
+			// is valid email
+			const userEmail = await db.User.findOne({
 				where: {
 					email,
-					token,
 				},
+				raw: true,
 			});
+			// always return ok response to prevent email enumeration
+			if (!userEmail) return;
+
+			const accessToken = userEmail
+				? jwt.sign(
+						{
+							id: userEmail.id,
+							email: userEmail.email,
+						},
+						process.env.JWT_SECRET as string,
+						{ expiresIn: '24h' }
+				  )
+				: null;
+
+			const refreshToken = userEmail
+				? jwt.sign(
+						{
+							id: userEmail.id,
+						},
+						process.env.JWT_SECRET_REFRESH_TOKEN as string,
+						{ expiresIn: '15d' }
+				  )
+				: null;
 		} catch (error) {
 			reject(error);
 		}

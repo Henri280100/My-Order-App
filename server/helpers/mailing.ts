@@ -5,6 +5,7 @@ dotenv.config({ path: __dirname + '/.env' });
 
 export const sendingMail = async ({ from, to, subject, html }: any) => {
 	try {
+		
 		let mailOptions = {
 			from,
 			to,

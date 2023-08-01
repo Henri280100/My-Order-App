@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv';
 import db from '../models';
 import jwt from 'jsonwebtoken';
 import { sendingMail } from '../../helpers/mailing';
-import { emailVerifyGen } from '../../helpers/mail.generator';
+import { emailVerifyGen, resetPasswordGen } from '../../helpers/mail.generator';
 
 dotenv.config({ path: __dirname + '/.env' });
 
@@ -26,7 +26,6 @@ export const register = ({ fullname, email, password, confirmpassword }: any) =>
 				where: { fullname },
 				raw: true,
 			});
-
 			const isDuplicatedUsernameEmail =
 				response[0] && checkDuplicatedUsernameEmail;
 
@@ -52,22 +51,6 @@ export const register = ({ fullname, email, password, confirmpassword }: any) =>
 				  )
 				: null;
 
-			// const responseMail = {
-			// 	body: {
-			// 		name: `${fullname}`,
-			// 		intro: 'Welcome to Order app!',
-			// 		action: {
-			// 			instructions:
-			// 				'To continue to complete your profile, please verify your account here',
-			// 			button: {
-			// 				color: '#22BC66',
-			// 				text: 'Confirm your verification',
-			// 				link: `http://localhost:3000/api/v1/auth/verify/${response[0].id}/${accessToken}`,
-			// 			},
-			// 		},
-			// 	},
-			// };
-
 			const mail = await sendingMail({
 				from: process.env.EMAIL_ID,
 				to: `${email}`,
@@ -78,13 +61,13 @@ export const register = ({ fullname, email, password, confirmpassword }: any) =>
 			resolve({
 				err: response[1] ? 0 : 1,
 				mess: response[1]
-					? 'Registered is successfully'
+					? 'Registered successfully'
 					: isDuplicatedUsernameEmail
 					? 'Full name is already taken'
 					: 'Email is already registered',
 				'access token': accessToken ? `Bearer ${accessToken}` : accessToken,
 				'refresh token': refreshToken ? `Bearer ${refreshToken}` : refreshToken,
-				'Sending mail': accessToken ? mail : accessToken,
+				'Sending mail': accessToken ? mail : null,
 			});
 
 			if (refreshToken) {
@@ -98,13 +81,19 @@ export const register = ({ fullname, email, password, confirmpassword }: any) =>
 				);
 			}
 		} catch (error) {
-			if (error instanceof Error) reject(error);
+			reject(error);
 		}
 	});
 
 export const login = ({ email, password }: any) =>
 	new Promise(async (resolve, reject) => {
 		try {
+			const checkEmailIsVerified = await db.User.findOne({
+				where: {
+					email,
+				},
+			});
+
 			const response = await db.User.findOne({
 				where: { email },
 				raw: true,
@@ -135,16 +124,26 @@ export const login = ({ email, password }: any) =>
 				  )
 				: null;
 
-			resolve({
-				err: accessToken ? 0 : 1,
-				mess: accessToken
-					? 'Login successfully'
-					: response
-					? 'Password is incorrect'
-					: 'Email not found',
-				'access token': accessToken ? `Bearer ${accessToken}` : accessToken,
-				'refresh token': refreshToken ? `Bearer ${refreshToken}` : refreshToken,
-			});
+			//check if user has already verified?
+
+			if (response && checkEmailIsVerified.verificationStatus === 'pending') {
+				resolve({
+					mess: 'Please verify your email before login',
+				});
+			} else {
+				resolve({
+					err: accessToken ? 0 : 1,
+					mess: accessToken
+						? 'Login successfully'
+						: response
+						? 'Invalid password'
+						: 'Invalid email',
+					'access token': accessToken ? `Bearer ${accessToken}` : accessToken,
+					'refresh token': refreshToken
+						? `Bearer ${refreshToken}`
+						: refreshToken,
+				});
+			}
 
 			if (refreshToken) {
 				await db.User.update(
@@ -157,7 +156,7 @@ export const login = ({ email, password }: any) =>
 				);
 			}
 		} catch (error) {
-			if (error instanceof Error) reject(error);
+			reject(error);
 		}
 	});
 
@@ -203,101 +202,148 @@ export const refreshToken = (refresh_token: any) =>
 				);
 			}
 		} catch (error) {
-			if (error instanceof Error) reject(error);
+			reject(error);
 		}
 	});
 
-export const verifyEmail = (accessToken: any, userId: any) =>
+export const verifyEmail = (userId: any, accessToken: any) =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const token = accessToken;
-
-			const userToken = await db.User.findOne({
-				token,
+			const response = await db.User.findOne({
+				token: accessToken,
 				where: {
 					id: userId,
 				},
 			});
 
-			console.log(userToken);
-
-			if (!userToken) {
-				reject({ mess: 'Your verification link' });
+			if (!response) {
+				resolve({
+					mess: 'Invalid verification token',
+				});
 			} else {
 				const user = await db.User.findOne({
 					where: { id: userId },
 					raw: true,
 				});
 				if (!user) {
-					reject({
+					resolve({
 						mess: 'We were unable to find a user for this verification. Please signup',
 					});
-				} else if (user.is_verified) {
+				} else if (user.verificationStatus === 'verified') {
 					resolve({
-						mess: 'User has been already verified',
+						mess: 'Your email has been already verified, now you can login',
 					});
 				} else {
 					const updated = await db.User.update(
 						{
-							is_verified: true,
+							verificationStatus: 'verified',
 						},
-						{
-							where: {
-								id: userToken.id,
-							},
-						}
+						{ where: { id: response.id } }
 					);
 					if (!updated) {
-						reject({ mess: 'Check again' });
+						resolve({
+							mess: 'Please verified your email',
+						});
 					} else {
-						resolve({ mess: 'Your account has been successfully verified' });
+						resolve({
+							mess: 'User email verified successfully',
+						});
 					}
 				}
 			}
 		} catch (error) {
-			if (error instanceof Error) reject(error);
+			reject(error);
 		}
 	});
 
-// TODO: Create forgot password function
-export const forgotPassword = ({
-	token,
-	email,
-	password,
-	confirmPassword,
-}: any) =>
+export const forgotPassword = (email: any) =>
 	new Promise(async (resolve, reject) => {
 		try {
-			// is valid email
-			const userEmail = await db.User.findOne({
+			const user = await db.User.findOne({
 				where: {
 					email,
 				},
-				raw: true,
 			});
-			// always return ok response to prevent email enumeration
-			if (!userEmail) return;
 
-			const accessToken = userEmail
-				? jwt.sign(
-						{
-							id: userEmail.id,
-							email: userEmail.email,
-						},
-						process.env.JWT_SECRET as string,
-						{ expiresIn: '24h' }
-				  )
-				: null;
+			if (!user) {
+				resolve({
+					mess: 'Email not found',
+				});
+			} else {
+				const accessToken = jwt.sign(
+					{
+						id: user.id,
+						email: user.email,
+						role_code: user.role_code,
+					},
+					process.env.JWT_SECRET as string,
+					{ expiresIn: '24h' }
+				);
 
-			const refreshToken = userEmail
-				? jwt.sign(
+				const mail = await sendingMail({
+					from: process.env.EMAIL_ID,
+					to: `${email}`,
+					subject: 'Reset password',
+					html: resetPasswordGen({
+						email,
+						id: user.id,
+						accessToken,
+					}),
+				});
+
+				resolve({
+					mess: 'Sending mail successfully',
+					'Sending mail': accessToken ? mail : accessToken,
+				});
+			}
+		} catch (error) {
+			reject(error);
+		}
+	});
+
+export const resetPassword = (
+	accessToken: any,
+	id: any,
+	{ password, confirmpassword }: any
+) =>
+	new Promise(async (resolve, reject) => {
+		try {
+			const response = await db.User.findOne({
+				accessToken,
+				where: {
+					id,
+				},
+			});
+
+			if (!response) {
+				resolve({
+					mess: 'Invalid verification token',
+				});
+			} else {
+				const user = await db.User.findOne({
+					where: { id },
+					raw: true,
+				});
+				if (!user) {
+					resolve({
+						mess: 'We were unable to find a user for this verification. Please signup',
+					});
+				} else {
+					const updated = await db.User.update(
 						{
-							id: userEmail.id,
+							confirmpassword,
+							password: hashPassword(password),
 						},
-						process.env.JWT_SECRET_REFRESH_TOKEN as string,
-						{ expiresIn: '15d' }
-				  )
-				: null;
+						{ where: { id: response.id } }
+					);
+					resolve({
+						err: updated ? 0 : 1,
+						mess: updated
+							? 'Reset your password successfully'
+							: "Invalid email or you haven't verified your email",
+					});
+				}
+			}
 		} catch (error) {
 			reject(error);
 		}

@@ -1,8 +1,7 @@
-import * as services from '../services';
+import * as services from '../services/index.service';
 import { Request, Response } from 'express';
 import { badRequest, internalServerError } from '../middleware/handle_errors';
-// import { email, password } from '../../helpers/joi_schema';
-// import joi from 'joi';
+
 
 export const getCurrent = async (req: Request, res: Response) => {
 	try {

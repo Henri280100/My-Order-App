@@ -1,4 +1,4 @@
-import * as services from '../services';
+import * as services from '../services/index.service';
 import { Request, Response } from 'express';
 import { badRequest, internalServerError } from '../middleware/handle_errors';
 import {
@@ -7,10 +7,13 @@ import {
 	fullname,
 	confirmpassword,
 	validateRefreshToken,
+	validateEmailVerification,
 } from '../../helpers/joi_schema';
 import joi from 'joi';
+import db from '../models';
+import bycrypt from 'bcrypt';
 
-export const register = async (req: Request, res: Response) => {
+export const registerCtrl = async (req: Request, res: Response) => {
 	try {
 		const { error } = joi
 			.object({
@@ -30,12 +33,11 @@ export const register = async (req: Request, res: Response) => {
 	}
 };
 
-export const login = async (req: Request, res: Response) => {
+export const loginCtrl = async (req: Request, res: Response) => {
 	try {
 		const { error } = joi.object({ email, password }).validate(req.body);
 
 		if (error) return badRequest(error.details[0].message, res);
-
 		const response = await services.login(req.body);
 
 		return res.status(200).json(response);
@@ -44,7 +46,7 @@ export const login = async (req: Request, res: Response) => {
 	}
 };
 
-export const refreshTokenController = async (req: Request, res: Response) => {
+export const refreshTokenCtrl = async (req: Request, res: Response) => {
 	try {
 		const { error } = joi.object({ validateRefreshToken }).validate(req.body);
 
@@ -57,7 +59,7 @@ export const refreshTokenController = async (req: Request, res: Response) => {
 	}
 };
 
-export const logoutUser = async (req: Request, res: Response) => {
+export const logoutUserCtrl = async (req: Request, res: Response) => {
 	try {
 		req.session = null as any;
 		res.clearCookie('refresh_token');
@@ -70,15 +72,48 @@ export const logoutUser = async (req: Request, res: Response) => {
 	}
 };
 
-export const verification = async (req: Request, res: Response) => {
+export const verificationCtrl = async (req: Request, res: Response) => {
 	try {
 		const token = req.params.accessToken;
-		const userId = req.params.id;
+		const id = req.params.id;
+		const { error } = joi.object({ validateEmailVerification }).validate(token);
+		if (error) return badRequest(error.details[0].message, res);
 
-		const response = await services.verifyEmail(token, userId);
+		const response = await services.verifyEmail(id, token);
 
 		return res.status(200).json(response);
 	} catch (error) {
 		return internalServerError(res);
 	}
+};
+
+export const forgotPasswordCtrl = async (req: Request, res: Response) => {
+	try {
+		const { error } = joi.object({ email }).validate(req.body);
+		if (error) return badRequest(error.details[0].message, res);
+
+		const response = await services.forgotPassword(req.body.email);
+		return res.status(200).json(response);
+	} catch (error) {
+		return internalServerError(res);
+	}
+};
+
+export const resetPasswordCtrl = async (req: Request, res: Response) => {
+	try {
+		const { error } = joi
+			.object({
+				password,
+				confirmpassword,
+			})
+			.validate(req.body);
+		if (error) return badRequest(error.details[0].message, res);
+
+		const response = await services.resetPassword(
+			req.params.accessToken,
+			req.params.id,
+			req.body
+		);
+		return res.status(200).json(response);
+	} catch (error) {}
 };

@@ -3,10 +3,12 @@ import express from 'express';
 
 const router = express.Router();
 
-router.post('/register', controllers.register);
-router.post('/login', controllers.login);
-router.post('/refresh-token', controllers.refreshTokenController);
-router.post('/logout', controllers.logoutUser);
-router.get('/verify/:id/:token', controllers.verification);
+router.post('/register', controllers.registerCtrl);
+router.post('/login', controllers.loginCtrl);
+router.post('/refresh-token', controllers.refreshTokenCtrl);
+router.post('/logout', controllers.logoutUserCtrl);
+router.get('/verify/:id/:token', controllers.verificationCtrl);
+router.post('/forgot-password', controllers.forgotPasswordCtrl);
+router.post('/reset-password/:id/:token', controllers.resetPasswordCtrl);
 
 export default router;

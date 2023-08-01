@@ -5,7 +5,6 @@ dotenv.config({ path: __dirname + '/.env' });
 
 export const sendingMail = async ({ from, to, subject, html }: any) => {
 	try {
-		
 		let mailOptions = {
 			from,
 			to,
@@ -24,9 +23,13 @@ export const sendingMail = async ({ from, to, subject, html }: any) => {
 			},
 		});
 
-		console.log(123, transporter);
-
-		return await transporter.sendMail(mailOptions);
+		return transporter.sendMail(mailOptions, (err, info) => {
+			if (err) {
+				console.error(err);
+			} else {
+				console.log(info, 'Send successfully');
+			}
+		});
 	} catch (error) {
 		if (error instanceof Error)
 			throw new Error('Cannot send email please check the connection');

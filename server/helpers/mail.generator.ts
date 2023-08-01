@@ -31,20 +31,27 @@ export const emailVerifyGen = ({ fullname, id, accessToken }: any) => {
 	return generateMail;
 };
 
-export const resetPasswordGen = ({ email, fullName, refreshToken }: any) => {
+export const resetPasswordGen = ({ email, id, accessToken }: any) => {
 	const responseMail = {
 		body: {
-			name: `${fullName}`,
-			intro: 'Rest password',
+			name: `${email}`,
+			intro:
+				'You have received this email because a password reset request for your account was received.',
 			action: {
 				instructions:
 					'Please click the link below to reset your password, the link will be valid for 1 day:',
 				button: {
-					color: '#22BC66',
+					color: '#DC4D2F',
 					text: 'Reset password',
-					link: `http://localhost:3000/api/v1/auth/verify/${refreshToken}`,
+					link: `http://localhost:3000/api/v1/auth/reset-password/${id}/${accessToken}`,
 				},
 			},
+			outro:
+				'If you did not request a password reset, no further action is required on your part.',
 		},
 	};
+
+	const generateMail = mailGenerator.generate(responseMail);
+
+	return generateMail;
 };

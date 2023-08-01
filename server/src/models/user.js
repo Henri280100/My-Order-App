@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
 			avatar: DataTypes.STRING,
 			role_code: DataTypes.STRING,
 			refresh_token: DataTypes.STRING,
-			is_verified: DataTypes.BOOLEAN,
+			verificationStatus: DataTypes.STRING,
 		},
 		{
 			sequelize,

@@ -28,7 +28,11 @@ module.exports = {
 			role_code: { type: Sequelize.STRING, defaultValue: 'RU' },
 			avatar: { type: Sequelize.STRING },
 			refresh_token: { type: Sequelize.STRING },
-			is_verified: { type: Sequelize.BOOLEAN, defaultValue: false },
+			verificationStatus: {
+				type: Sequelize.STRING,
+				allowNull: false,
+				defaultValue: 'pending',
+			},
 			createdAt: {
 				allowNull: false,
 				type: Sequelize.DATE,

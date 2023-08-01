@@ -3,7 +3,9 @@ import joi from 'joi';
 export const email = joi
 	.string()
 	.pattern(new RegExp('^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$'))
-	.required();
+	.required()
+	.email();
+
 export const password = joi.string().min(6).label('password').required();
 
 export const fullname = joi
@@ -20,3 +22,5 @@ export const confirmpassword = joi
 	.options({ messages: { 'any.only': '{{#label}} does not match' } });
 
 export const validateRefreshToken = joi.string().required();
+
+export const validateEmailVerification = joi.string().required().email();

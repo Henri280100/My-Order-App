@@ -8,7 +8,7 @@ import {
 	confirmpassword,
 	validateRefreshToken,
 	validateEmailVerification,
-} from '../../helpers/joi_schema';
+} from '../helpers/joi_schema';
 import joi from 'joi';
 import db from '../models';
 import bycrypt from 'bcrypt';

@@ -6,3 +6,5 @@ technologies used:
 - node js
 - express js
 - MySQL
+- Elastic Search
+- Bcrypt for secure password

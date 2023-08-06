@@ -13,6 +13,7 @@ const dbHost = databaseConnection.host;
 const dbUserName = databaseConnection.username;
 const dbPassword = databaseConnection.password;
 const database = databaseConnection.database;
+const dbDialect = databaseConnection.dialect;
 
 const sequelize = new Sequelize(database, dbUserName, dbPassword, {
 	host: dbHost,

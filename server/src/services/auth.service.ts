@@ -2,8 +2,9 @@ import bycrypt from 'bcrypt';
 import * as dotenv from 'dotenv';
 import db from '../models';
 import jwt from 'jsonwebtoken';
-import { sendingMail } from '../../helpers/mailing';
-import { emailVerifyGen, resetPasswordGen } from '../../helpers/mail.generator';
+import { sendingMail } from '../helpers/mailing';
+import { emailVerifyGen, resetPasswordGen } from '../helpers/mail.generator';
+import queryData from '../helpers/sequelize_query';
 
 dotenv.config({ path: __dirname + '/.env' });
 
@@ -13,18 +14,16 @@ const hashPassword = (password: any) =>
 export const register = ({ fullname, email, password, confirmpassword }: any) =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const response = await db.User.findOrCreate({
-				where: { email, confirmpassword },
-				defaults: {
-					fullname,
+			const response = await queryData.findOrCreateNewData(
+				{
 					email,
-					password: hashPassword(password),
+					confirmpassword,
 				},
-			});
+				{ fullname, email, password: hashPassword(password) }
+			);
 
-			const checkDuplicatedUsernameEmail = await db.User.findOne({
-				where: { fullname },
-				raw: true,
+			const checkDuplicatedUsernameEmail = await queryData.findData({
+				fullname,
 			});
 			const isDuplicatedUsernameEmail =
 				response[0] && checkDuplicatedUsernameEmail;
@@ -71,13 +70,9 @@ export const register = ({ fullname, email, password, confirmpassword }: any) =>
 			});
 
 			if (refreshToken) {
-				await db.User.update(
-					{
-						refresh_token: refreshToken,
-					},
-					{
-						where: { id: response[0].id },
-					}
+				await queryData.updateData(
+					{ refreshToken: refreshToken },
+					{ id: response[0].id }
 				);
 			}
 		} catch (error) {
@@ -146,13 +141,9 @@ export const login = ({ email, password }: any) =>
 			}
 
 			if (refreshToken) {
-				await db.User.update(
-					{
-						refresh_token: refreshToken,
-					},
-					{
-						where: { id: response.id },
-					}
+				await queryData.updateData(
+					{ refreshToken: refreshToken },
+					{ id: response.id }
 				);
 			}
 		} catch (error) {
@@ -163,8 +154,8 @@ export const login = ({ email, password }: any) =>
 export const refreshToken = (refresh_token: any) =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const response = await db.User.findOne({
-				where: { refresh_token },
+			const response = await queryData.findData({
+				refreshToken,
 			});
 
 			if (response) {
@@ -209,21 +200,15 @@ export const refreshToken = (refresh_token: any) =>
 export const verifyEmail = (userId: any, accessToken: any) =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const response = await db.User.findOne({
-				token: accessToken,
-				where: {
-					id: userId,
-				},
-			});
+			const response = await queryData.findOldData(accessToken, { userId });
 
 			if (!response) {
 				resolve({
 					mess: 'Invalid verification token',
 				});
 			} else {
-				const user = await db.User.findOne({
-					where: { id: userId },
-					raw: true,
+				const user = await queryData.findData({
+					userId,
 				});
 				if (!user) {
 					resolve({
@@ -234,11 +219,9 @@ export const verifyEmail = (userId: any, accessToken: any) =>
 						mess: 'Your email has been already verified, now you can login',
 					});
 				} else {
-					const updated = await db.User.update(
-						{
-							verificationStatus: 'verified',
-						},
-						{ where: { id: response.id } }
+					const updated = await queryData.updateData(
+						{ verificationStatus: 'verified' },
+						{ id: response.id }
 					);
 					if (!updated) {
 						resolve({
@@ -259,11 +242,7 @@ export const verifyEmail = (userId: any, accessToken: any) =>
 export const forgotPassword = (email: any) =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const user = await db.User.findOne({
-				where: {
-					email,
-				},
-			});
+			const user = await queryData.findData({ email });
 
 			if (!user) {
 				resolve({
@@ -308,33 +287,27 @@ export const resetPassword = (
 ) =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const response = await db.User.findOne({
-				accessToken,
-				where: {
-					id,
-				},
-			});
+			const response = await queryData.findOldData(accessToken, { id });
 
 			if (!response) {
 				resolve({
 					mess: 'Invalid verification token',
 				});
 			} else {
-				const user = await db.User.findOne({
-					where: { id },
-					raw: true,
+				const user = await queryData.findData({
+					id,
 				});
 				if (!user) {
 					resolve({
 						mess: 'We were unable to find a user for this verification. Please signup',
 					});
 				} else {
-					const updated = await db.User.update(
+					const updated = await queryData.updateData(
 						{
 							confirmpassword,
 							password: hashPassword(password),
 						},
-						{ where: { id: response.id } }
+						{ id: response.id }
 					);
 					resolve({
 						err: updated ? 0 : 1,

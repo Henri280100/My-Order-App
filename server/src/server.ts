@@ -3,6 +3,7 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import * as dotenv from 'dotenv';
 import initRoutes from './routes';
+
 require('./models/index');
 
 dotenv.config({ path: __dirname + '/.env' });
@@ -23,6 +24,7 @@ app.use(
 app.use(bodyParser.json());
 
 app.use(bodyParser.urlencoded({ extended: true }));
+// configure session middleware
 
 // set port, listen for requests
 

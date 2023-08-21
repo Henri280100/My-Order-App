@@ -1,49 +1,75 @@
-import bycrypt from 'bcrypt';
-import * as dotenv from 'dotenv';
-import db from '../models';
 import jwt from 'jsonwebtoken';
-import { sendingMail } from '../helpers/mailing';
-import { emailVerifyGen, resetPasswordGen } from '../helpers/mail.generator';
-import queryData from '../helpers/sequelize_query';
-
+import queryData from '../helpers/sequelize-query.helpers';
+import {
+	ForgotPasswordResponse,
+	LoginResponse,
+	LogoutResponse,
+	RefreshTokenResponse,
+	RegisterResponse,
+	ResetPasswordResponse,
+	VerifyEmailResponse,
+} from '../libs/utils/response.utils';
+import {
+	emailVerifyGen,
+	resetPasswordGen,
+} from '../libs/utils/mail-generator.utils';
+import { hashPassword } from '../libs/utils/hash-password.utils';
+import { comparePassword } from '../libs/utils/compared-password.utils';
+import { sendingMail } from '../libs/utils/mailing.utils';
+import * as dotenv from 'dotenv';
 dotenv.config({ path: __dirname + '/.env' });
 
-const hashPassword = (password: any) =>
-	bycrypt.hashSync(password, bycrypt.genSaltSync(8));
-
-export const register = ({ fullname, email, password, confirmpassword }: any) =>
+export const RegisterService = ({
+	fullname,
+	email,
+	password,
+	confirmpassword,
+}: {
+	fullname: string;
+	email: string;
+	password: string;
+	confirmpassword: string;
+}): Promise<RegisterResponse> =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const response = await queryData.findOrCreateNewData(
+			const userData = await queryData.findOrCreateNewData(
 				{
-					email,
-					confirmpassword,
+					email: email,
+					confirmpassword: confirmpassword,
 				},
-				{ fullname, email, password: hashPassword(password) }
+				{
+					fullname: fullname,
+					email: email,
+					password: hashPassword(password),
+				}
 			);
 
-			const checkDuplicatedUsernameEmail = await queryData.findData({
-				fullname,
-			});
-			const isDuplicatedUsernameEmail =
-				response[0] && checkDuplicatedUsernameEmail;
+			const checkDuplicatedUsernameEmail = await queryData.findData(
+				{
+					fullname: fullname,
+				},
+				['id', 'fullname']
+			);
 
-			const accessToken = response[1]
+			const isDuplicatedUsernameEmail =
+				userData && checkDuplicatedUsernameEmail;
+
+			const accessToken = userData
 				? jwt.sign(
 						{
-							id: response[0].id,
-							email: response[0].email,
-							role_code: response[0].role_code,
+							id: userData.id,
+							email: userData.email,
+							role_code: userData.role_code,
 						},
 						process.env.JWT_SECRET as string,
 						{ expiresIn: '24h' }
 				  )
 				: null;
 
-			const refreshToken = response[1]
+			const refreshToken = userData
 				? jwt.sign(
 						{
-							id: response[0].id,
+							id: userData.id,
 						},
 						process.env.JWT_SECRET_REFRESH_TOKEN as string,
 						{ expiresIn: '15d' }
@@ -54,12 +80,16 @@ export const register = ({ fullname, email, password, confirmpassword }: any) =>
 				from: process.env.EMAIL_ID,
 				to: `${email}`,
 				subject: 'Account verification',
-				html: emailVerifyGen({ fullname, id: response[0].id, accessToken }),
+				html: emailVerifyGen({
+					fullname,
+					id: userData.id,
+					accessToken,
+				}),
 			});
 
 			resolve({
-				err: response[1] ? 0 : 1,
-				mess: response[1]
+				err: userData ? 0 : 1,
+				mess: userData
 					? 'Registered successfully'
 					: isDuplicatedUsernameEmail
 					? 'Full name is already taken'
@@ -71,8 +101,8 @@ export const register = ({ fullname, email, password, confirmpassword }: any) =>
 
 			if (refreshToken) {
 				await queryData.updateData(
-					{ refreshToken: refreshToken },
-					{ id: response[0].id }
+					{ refresh_token: refreshToken },
+					{ id: userData.id }
 				);
 			}
 		} catch (error) {
@@ -80,22 +110,60 @@ export const register = ({ fullname, email, password, confirmpassword }: any) =>
 		}
 	});
 
-export const login = ({ email, password }: any) =>
+export const LogoutService = (userId: number): Promise<LogoutResponse> =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const checkEmailIsVerified = await db.User.findOne({
-				where: {
-					email,
-				},
-			});
+			const numRowsUpdated = await queryData.updateData(
+				{ refresh_token: null },
+				{ id: userId }
+			);
 
-			const response = await db.User.findOne({
-				where: { email },
-				raw: true,
+			if (!numRowsUpdated) {
+				resolve({
+					err: 1,
+					mess: 'Logout failed',
+				});
+			}
+
+			resolve({
+				err: 0,
+				mess: 'Logout successfully',
 			});
+		} catch (error) {
+			reject(error);
+		}
+	});
+
+export const LoginService = ({
+	email,
+	password,
+	rememberMe = false,
+}: {
+	email: string;
+	password: string;
+	rememberMe?: boolean;
+}): Promise<LoginResponse> =>
+	new Promise(async (resolve, reject) => {
+		try {
+			const [checkEmailIsVerified, response] = await Promise.all([
+				queryData.findData(
+					{
+						email: email,
+					},
+					['id', 'email', 'verificationStatus']
+				),
+				queryData.findData(
+					{
+						email: email,
+					},
+					['id', 'email', 'password', 'confirmpassword']
+				),
+			]);
 
 			const isChecked =
-				response && bycrypt.compareSync(password, response.password);
+				response && comparePassword(password, response.password);
+
+			const expiresIn = rememberMe ? '7d' : '24h';
 
 			const accessToken = isChecked
 				? jwt.sign(
@@ -105,7 +173,7 @@ export const login = ({ email, password }: any) =>
 							role_code: response.role_code,
 						},
 						process.env.JWT_SECRET as string,
-						{ expiresIn: '24h' }
+						{ expiresIn }
 				  )
 				: null;
 
@@ -115,18 +183,20 @@ export const login = ({ email, password }: any) =>
 							id: response.id,
 						},
 						process.env.JWT_SECRET_REFRESH_TOKEN as string,
-						{ expiresIn: '15d' }
+						{ expiresIn }
 				  )
 				: null;
 
 			//check if user has already verified?
-
-			if (response && checkEmailIsVerified.verificationStatus === 'pending') {
+			if (response && checkEmailIsVerified?.verificationStatus === 'pending') {
 				resolve({
+					success: false,
+					err: 0,
 					mess: 'Please verify your email before login',
 				});
 			} else {
 				resolve({
+					success: accessToken ? true : false,
 					err: accessToken ? 0 : 1,
 					mess: accessToken
 						? 'Login successfully'
@@ -142,8 +212,8 @@ export const login = ({ email, password }: any) =>
 
 			if (refreshToken) {
 				await queryData.updateData(
-					{ refreshToken: refreshToken },
-					{ id: response.id }
+					{ refresh_token: refreshToken },
+					{ id: response?.id }
 				);
 			}
 		} catch (error) {
@@ -151,12 +221,17 @@ export const login = ({ email, password }: any) =>
 		}
 	});
 
-export const refreshToken = (refresh_token: any) =>
+export const RefreshTokenService = (
+	refresh_token: string
+): Promise<RefreshTokenResponse> =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const response = await queryData.findData({
-				refreshToken,
-			});
+			const response = await queryData.findData(
+				{
+					refresh_token: refresh_token,
+				},
+				['id', 'refresh_token']
+			);
 
 			if (response) {
 				jwt.verify(
@@ -197,25 +272,36 @@ export const refreshToken = (refresh_token: any) =>
 		}
 	});
 
-export const verifyEmail = (userId: any, accessToken: any) =>
+export const VerifyEmailService = (
+	userId: any,
+	accessToken: any
+): Promise<VerifyEmailResponse> =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const response = await queryData.findOldData(accessToken, { userId });
-
+			const response = await queryData.findOldData(accessToken, {
+				id: userId,
+			});
 			if (!response) {
 				resolve({
+					err: 0,
 					mess: 'Invalid verification token',
 				});
 			} else {
-				const user = await queryData.findData({
-					userId,
-				});
+				const user = await queryData.findData(
+					{
+						id: userId,
+					},
+					['id']
+				);
+
 				if (!user) {
 					resolve({
+						err: 0,
 						mess: 'We were unable to find a user for this verification. Please signup',
 					});
 				} else if (user.verificationStatus === 'verified') {
 					resolve({
+						err: 0,
 						mess: 'Your email has been already verified, now you can login',
 					});
 				} else {
@@ -223,29 +309,37 @@ export const verifyEmail = (userId: any, accessToken: any) =>
 						{ verificationStatus: 'verified' },
 						{ id: response.id }
 					);
+
 					if (!updated) {
 						resolve({
+							err: 0,
 							mess: 'Please verified your email',
 						});
 					} else {
 						resolve({
+							err: 1,
 							mess: 'User email verified successfully',
 						});
 					}
 				}
 			}
 		} catch (error) {
-			reject(error);
+			if (error instanceof Error)
+				throw new Error(`Error at ${error.message}, ${reject(error)}`);
+			// reject(error);
 		}
 	});
 
-export const forgotPassword = (email: any) =>
+export const ForgotPasswordService = (
+	email: string
+): Promise<ForgotPasswordResponse> =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const user = await queryData.findData({ email });
+			const user = await queryData.findData({ email: email }, ['id', 'email']);
 
 			if (!user) {
 				resolve({
+					err: 0,
 					mess: 'Email not found',
 				});
 			} else {
@@ -271,8 +365,9 @@ export const forgotPassword = (email: any) =>
 				});
 
 				resolve({
+					err: 1,
 					mess: 'Sending mail successfully',
-					'Sending mail': accessToken ? mail : accessToken,
+					'Sending mail': accessToken ? mail : null,
 				});
 			}
 		} catch (error) {
@@ -280,31 +375,36 @@ export const forgotPassword = (email: any) =>
 		}
 	});
 
-export const resetPassword = (
-	accessToken: any,
-	id: any,
-	{ password, confirmpassword }: any
-) =>
+export const ResetPasswordService = (
+	accessToken: string,
+	id: number,
+	{ password, confirmpassword }: { password: string; confirmpassword: string }
+): Promise<ResetPasswordResponse> =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const response = await queryData.findOldData(accessToken, { id });
+			const response = await queryData.findOldData(accessToken, { id: id });
 
 			if (!response) {
 				resolve({
+					err: 1,
 					mess: 'Invalid verification token',
 				});
 			} else {
-				const user = await queryData.findData({
-					id,
-				});
+				const user = await queryData.findData(
+					{
+						id: id,
+					},
+					['id']
+				);
 				if (!user) {
 					resolve({
+						err: 1,
 						mess: 'We were unable to find a user for this verification. Please signup',
 					});
 				} else {
 					const updated = await queryData.updateData(
 						{
-							confirmpassword,
+							confirmpassword: confirmpassword,
 							password: hashPassword(password),
 						},
 						{ id: response.id }

@@ -1,7 +1,9 @@
 import * as services from '../services/index.service';
 import { Request, Response } from 'express';
-import { badRequest, internalServerError } from '../middleware/handle_errors';
-
+import {
+	badRequest,
+	internalServerError,
+} from '../middleware/handle-errors.middleware';
 
 export const getCurrent = async (req: Request, res: Response) => {
 	try {

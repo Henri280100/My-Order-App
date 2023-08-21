@@ -14,6 +14,12 @@ module.exports = (sequelize, DataTypes) => {
 				targetKey: 'code',
 				as: 'roleData',
 			});
+
+			// User.belongsTo(models.TwoFactorSecret, {
+			// 	foreignKey: 'email',
+			// 	sourceKey: 'email',
+			// 	as: 'twoFactorSecretData',
+			// });
 		}
 	}
 	User.init(
@@ -26,6 +32,9 @@ module.exports = (sequelize, DataTypes) => {
 			role_code: DataTypes.STRING,
 			refresh_token: DataTypes.STRING,
 			verificationStatus: DataTypes.STRING,
+			rememberMe: DataTypes.BOOLEAN,
+			// secret_code: DataTypes.STRING,
+			// twoFactorEnabled: DataTypes.BOOLEAN,
 		},
 		{
 			sequelize,

@@ -4,7 +4,7 @@ import express from 'express';
 const router = express.Router();
 
 router.post('/register', controllers.registerCtrl);
-router.post('/login', controllers.loginCtrl);
+router.post('/login', controllers.rateLimitedLoginCtrl);
 router.post('/refresh-token', controllers.refreshTokenCtrl);
 router.post('/logout', controllers.logoutUserCtrl);
 router.get('/verify/:id/:token', controllers.verificationCtrl);

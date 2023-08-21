@@ -1,7 +1,10 @@
 import { Application, Request, Response } from 'express';
 import auth from './auth';
 import user from './user';
-import { internalServerError, notFound } from '../middleware/handle_errors';
+import {
+	internalServerError,
+	notFound,
+} from '../middleware/handle-errors.middleware';
 
 const initRoutes = (app: Application) => {
 	app.use('/api/v1/auth', auth);

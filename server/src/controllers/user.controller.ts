@@ -1,11 +1,7 @@
 import * as services from '../services/index.service';
 import { Request, Response } from 'express';
-import {
-	badRequest,
-	internalServerError,
-} from '../middleware/handle-errors.middleware';
+import { internalServerError } from '../middleware/handle-errors.middleware';
 import upload from '../middleware/upload.middleware';
-import { ROLES } from '../helpers/roles_enum.helpers';
 
 export const getCurrent = async (req: Request, res: Response) => {
 	try {
@@ -49,19 +45,4 @@ export const updateUserCtrl = async (req: Request, res: Response) => {
 		if (error instanceof Error)
 			throw new Error(`Error at ${error}, ${internalServerError(res)}`);
 	}
-};
-
-export const createUserCtrl = async (req: Request, res: Response) => {
-	try {
-		const userData = {
-			fullname: req.body.name,
-			email: req.body.email,
-			password: req.body.password,
-			confirmpassword: req.body.confirmpassword,
-			role_code: req.body.role_code || ROLES.User,
-		};
-		if (userData.role_code === ROLES.User) {
-			userData.role_code = ROLES.Admin;
-		}
-	} catch (error) {}
 };

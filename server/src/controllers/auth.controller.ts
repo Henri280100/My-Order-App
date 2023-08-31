@@ -69,6 +69,8 @@ export const loginCtrl = async (req: Request, res: Response) => {
 		const { error } = joi.object({ email, password }).validate(req.body);
 
 		if (error) return badRequest(error.details[0].message, res);
+
+		// Limit and lock user when type wrong information
 		const isLocked = await limiter.get(req.body.email);
 		if (isLocked && isLocked.consumedPoints >= limiter.points) {
 			return res.status(401).json({ error: 'Your account has been locked' });

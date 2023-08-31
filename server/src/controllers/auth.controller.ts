@@ -14,6 +14,8 @@ import {
 	badRequest,
 	internalServerError,
 } from '../middleware/handle-errors.middleware';
+import upload from '../middleware/upload.middleware';
+import { ROLES } from '../helpers/roles_enum.helpers';
 
 const limiter = new RateLimiterMemory({
 	points: 5, // Maximum number of failed login attempts before lockout
@@ -33,15 +35,32 @@ export const registerCtrl = async (req: Request, res: Response) => {
 				email,
 				password,
 				confirmpassword,
+				role_code: joi.string().default(ROLES.User),
 			})
 			.validate(req.body);
 		if (error) return badRequest(error.details[0].message, res);
-
-		const response = await services.RegisterService(req.body);
-
-		return res.status(200).json(response);
+		upload(req, res, async (err: any) => {
+			if (err instanceof Error) {
+				return res.status(400).json({
+					error: err.message,
+				});
+			}
+			const userData = {
+				fullname: req.body.fullname,
+				email: req.body.email,
+				password: req.body.password,
+				confirmpassword: req.body.confirmpassword,
+				genders: req.body.genders,
+				avatar: req.file ? req.file.filename : undefined,
+				role_code:
+					req.body.role_code === ROLES.User ? ROLES.Admin : req.body.role_code,
+			};
+			const response = await services.RegisterService(userData);
+			return res.status(200).json(response);
+		});
 	} catch (err) {
-		return internalServerError(res);
+		if (err instanceof Error)
+			throw new Error(`Error at ${err.message}, ${internalServerError(res)}`);
 	}
 };
 
@@ -70,7 +89,8 @@ export const loginCtrl = async (req: Request, res: Response) => {
 
 		return res.status(200).json(response);
 	} catch (err) {
-		return internalServerError(res);
+		if (err instanceof Error)
+			throw new Error(`Error at ${err.message}, ${internalServerError(res)}`);
 	}
 };
 
@@ -106,7 +126,8 @@ export const refreshTokenCtrl = async (req: Request, res: Response) => {
 
 		return res.status(200).json(response);
 	} catch (err) {
-		return internalServerError(res);
+		if (err instanceof Error)
+			throw new Error(`Error at ${err.message}, ${internalServerError(res)}`);
 	}
 };
 
@@ -116,7 +137,8 @@ export const logoutUserCtrl = async (req: Request, res: Response) => {
 		const result = await services.LogoutService(userId);
 		return res.status(200).json(result);
 	} catch (err) {
-		return internalServerError(res);
+		if (err instanceof Error)
+			throw new Error(`Error at ${err.message}, ${internalServerError(res)}`);
 	}
 };
 
@@ -143,8 +165,9 @@ export const forgotPasswordCtrl = async (req: Request, res: Response) => {
 
 		const response = await services.ForgotPasswordService(req.body.email);
 		return res.status(200).json(response);
-	} catch (error) {
-		return internalServerError(res);
+	} catch (err) {
+		if (err instanceof Error)
+			throw new Error(`Error at ${err.message}, ${internalServerError(res)}`);
 	}
 };
 
@@ -165,7 +188,8 @@ export const resetPasswordCtrl = async (req: Request, res: Response) => {
 			req.body
 		);
 		return res.status(200).json(response);
-	} catch (error) {
-		internalServerError(res);
+	} catch (err) {
+		if (err instanceof Error)
+			throw new Error(`Error at ${err.message}, ${internalServerError(res)}`);
 	}
 };

@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import queryData from '../helpers/sequelize-query.helpers';
+import { SequelizeHelper } from '../helpers/sequelize-query.helpers';
 import {
 	ForgotPasswordResponse,
 	LoginResponse,
@@ -8,31 +8,44 @@ import {
 	RegisterResponse,
 	ResetPasswordResponse,
 	VerifyEmailResponse,
-} from '../libs/utils/response.utils';
+} from '../utils/response.utils';
 import {
 	emailVerifyGen,
 	resetPasswordGen,
-} from '../libs/utils/mail-generator.utils';
-import { hashPassword } from '../libs/utils/hash-password.utils';
-import { comparePassword } from '../libs/utils/compared-password.utils';
-import { sendingMail } from '../libs/utils/mailing.utils';
+} from '../utils/mail-generator.utils';
+import { hashPassword } from '../utils/hash-password.utils';
+import { comparePassword } from '../utils/compared-password.utils';
+import { sendingMail } from '../utils/mailing.utils';
 import * as dotenv from 'dotenv';
+import db from '../models';
 dotenv.config({ path: __dirname + '/.env' });
 
+const dataHelper = new SequelizeHelper(db.User);
 export const RegisterService = ({
 	fullname,
 	email,
 	password,
 	confirmpassword,
+	genders,
 }: {
 	fullname: string;
 	email: string;
 	password: string;
 	confirmpassword: string;
+	genders: 'Male' | 'Female' | '';
 }): Promise<RegisterResponse> =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const userData = await queryData.findOrCreateNewData(
+			let avatarUrl: string | undefined;
+			if (genders === 'Male') {
+				avatarUrl = '../assets/user_ava/man_2.png';
+			} else if (genders === 'Female') {
+				avatarUrl = '../assets/user_ava/woman_4.png';
+			} else {
+				avatarUrl = '../assets/user_ava/default_avatar.png';
+			}
+
+			const userData = await dataHelper.findOrCreate(
 				{
 					email: email,
 					confirmpassword: confirmpassword,
@@ -41,10 +54,11 @@ export const RegisterService = ({
 					fullname: fullname,
 					email: email,
 					password: hashPassword(password),
+					avatar: avatarUrl,
 				}
 			);
 
-			const checkDuplicatedUsernameEmail = await queryData.findData(
+			const checkDuplicatedUsernameEmail = await dataHelper.findOne(
 				{
 					fullname: fullname,
 				},
@@ -100,7 +114,7 @@ export const RegisterService = ({
 			});
 
 			if (refreshToken) {
-				await queryData.updateData(
+				await dataHelper.update(
 					{ refresh_token: refreshToken },
 					{ id: userData.id }
 				);
@@ -113,7 +127,7 @@ export const RegisterService = ({
 export const LogoutService = (userId: number): Promise<LogoutResponse> =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const numRowsUpdated = await queryData.updateData(
+			const numRowsUpdated = await dataHelper.update(
 				{ refresh_token: null },
 				{ id: userId }
 			);
@@ -146,13 +160,13 @@ export const LoginService = ({
 	new Promise(async (resolve, reject) => {
 		try {
 			const [checkEmailIsVerified, response] = await Promise.all([
-				queryData.findData(
+				dataHelper.findOne(
 					{
 						email: email,
 					},
 					['id', 'email', 'verificationStatus']
 				),
-				queryData.findData(
+				dataHelper.findOne(
 					{
 						email: email,
 					},
@@ -211,7 +225,7 @@ export const LoginService = ({
 			}
 
 			if (refreshToken) {
-				await queryData.updateData(
+				await dataHelper.update(
 					{ refresh_token: refreshToken },
 					{ id: response?.id }
 				);
@@ -226,7 +240,7 @@ export const RefreshTokenService = (
 ): Promise<RefreshTokenResponse> =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const response = await queryData.findData(
+			const response = await dataHelper.findOne(
 				{
 					refresh_token: refresh_token,
 				},
@@ -278,7 +292,7 @@ export const VerifyEmailService = (
 ): Promise<VerifyEmailResponse> =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const response = await queryData.findOldData(accessToken, {
+			const response = await dataHelper.findAndUpdate(accessToken, {
 				id: userId,
 			});
 			if (!response) {
@@ -287,7 +301,7 @@ export const VerifyEmailService = (
 					mess: 'Invalid verification token',
 				});
 			} else {
-				const user = await queryData.findData(
+				const user = await dataHelper.findOne(
 					{
 						id: userId,
 					},
@@ -305,7 +319,7 @@ export const VerifyEmailService = (
 						mess: 'Your email has been already verified, now you can login',
 					});
 				} else {
-					const updated = await queryData.updateData(
+					const updated = await dataHelper.update(
 						{ verificationStatus: 'verified' },
 						{ id: response.id }
 					);
@@ -335,7 +349,7 @@ export const ForgotPasswordService = (
 ): Promise<ForgotPasswordResponse> =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const user = await queryData.findData({ email: email }, ['id', 'email']);
+			const user = await dataHelper.findOne({ email: email }, ['id', 'email']);
 
 			if (!user) {
 				resolve({
@@ -376,13 +390,15 @@ export const ForgotPasswordService = (
 	});
 
 export const ResetPasswordService = (
-	accessToken: string,
+	accessToken: any,
 	id: number,
 	{ password, confirmpassword }: { password: string; confirmpassword: string }
 ): Promise<ResetPasswordResponse> =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const response = await queryData.findOldData(accessToken, { id: id });
+			const response = await dataHelper.findAndUpdate(accessToken, {
+				id: id,
+			});
 
 			if (!response) {
 				resolve({
@@ -390,7 +406,7 @@ export const ResetPasswordService = (
 					mess: 'Invalid verification token',
 				});
 			} else {
-				const user = await queryData.findData(
+				const user = await dataHelper.findOne(
 					{
 						id: id,
 					},
@@ -402,7 +418,7 @@ export const ResetPasswordService = (
 						mess: 'We were unable to find a user for this verification. Please signup',
 					});
 				} else {
-					const updated = await queryData.updateData(
+					const updated = await dataHelper.update(
 						{
 							confirmpassword: confirmpassword,
 							password: hashPassword(password),

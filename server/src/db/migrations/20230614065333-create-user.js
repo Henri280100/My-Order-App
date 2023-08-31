@@ -34,6 +34,10 @@ module.exports = {
 				allowNull: false,
 				defaultValue: false,
 			},
+			genders: {
+				type: Sequelize.STRING,
+				defaultValue: 'Male' | 'Female' | '',
+			},
 			// secret_code: {
 			// 	type: Sequelize.STRING,
 			// 	allowNull: true,

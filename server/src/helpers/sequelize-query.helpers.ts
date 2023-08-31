@@ -1,139 +1,95 @@
 import { WhereOptions, Model, Optional } from 'sequelize';
 import db from '../models';
+import { MakeNullishOptional } from 'sequelize/types/utils';
 
-interface UserAttributes {
-	id: number;
-	fullname: string;
-	email: string;
-	password: string;
-	confirmpassword: string;
-	avatar: string;
-	role_code: string;
-	refresh_token: string | null;
-	verificationStatus: string;
-	// secret_code: string;
-	// twoFactorEnabled: boolean;
-	createdAt: Date;
-	updatedAt: Date;
-}
+type Constructor<T> = new (...args: any[]) => T;
+type ModelType<T extends Model<T>> = Constructor<T> & typeof Model;
+export class SequelizeHelper<T extends Model> {
+	constructor(protected model: ModelType<T>) {}
 
-// class User extends Model<UserAttributes> implements UserAttributes {
-// 	public id!: number;
-// 	public fullname!: string;
-// 	public email!: string;
-// 	public password!: string;
-// 	public confirmpassword!: string;
-// 	public avatar!: string;
-// 	public role_code!: string;
-// 	public secret_code!: string;
-// 	public refresh_token!: string;
-// 	public verificationStatus!: string;
-// 	public twoFactorEnabled!: boolean;
-// 	public readonly createdAt!: Date;
-// 	public readonly updatedAt!: Date;
-// }
-
-// interface TwoFactorSecretAttributes {
-// 	id: number;
-// 	email: string;
-// 	secret: string;
-// 	createdAt: Date;
-// 	updatedAt: Date;
-// }
-
-// class TwoFactorSecret
-// 	extends Model<TwoFactorSecretAttributes>
-// 	implements TwoFactorSecretAttributes
-// {
-// 	public id!: number;
-// 	public email!: string;
-// 	public secret!: string;
-// 	public readonly createdAt!: Date;
-// 	public readonly updatedAt!: Date;
-// }
-
-class SequelizeServiceHelper {
-	async createData(whereClause: object): Promise<UserAttributes> {
-		const user = await db.User.create(whereClause as UserAttributes);
-		return user.get({ plain: true });
+	async create(
+		data: Partial<T['_creationAttributes']> &
+			MakeNullishOptional<T['_creationAttributes']>
+	): Promise<T['_attributes']> {
+		const instance = await this.model.create(data);
+		return instance.get({ plain: true });
 	}
 
-	async findOrCreateNewData(
-		whereClause: WhereOptions<UserAttributes> | undefined,
-		defaultsClause: object
-	): Promise<UserAttributes> {
+	async findOrCreate(
+		whereClause: WhereOptions<T['_attributes']> | undefined,
+		defaultsClause: Partial<T['_creationAttributes']> &
+			MakeNullishOptional<T['_creationAttributes']>
+	): Promise<T['_attributes']> {
 		try {
-			const [user, created] = await db.User.findOrCreate({
+			const [instance, created] = await this.model.findOrCreate({
 				where: whereClause,
-				defaults: defaultsClause as Optional<UserAttributes, never>,
+				defaults: defaultsClause,
 			});
 
-			return user.get({ plain: true });
+			return instance.get({ plain: true });
 		} catch (error) {
 			throw error;
 		}
 	}
 
-	async findAllData(): Promise<UserAttributes[]> {
-		const users = await db.User.findAll();
-
-		return users.map((user: any) => user.get({ plain: true }));
+	async findAll(): Promise<T['_attributes'][]> {
+		const data = await this.model.findAll();
+		return data.map((item) => item.get({ plain: true }));
 	}
 
-	async findDataById(userId: number): Promise<UserAttributes | null> {
-		const user = await db.User.findByPk(userId);
+	async findById(id: number): Promise<T['_attributes'] | null> {
+		const data = await this.model.findByPk(id);
 
-		if (!user) {
+		if (!data) {
 			return null;
 		}
 
-		return user.get({ plain: true });
+		return data.get({ plain: true });
 	}
 
-	async findData(
-		whereClause: WhereOptions<UserAttributes>,
+	async findOne(
+		whereClause: WhereOptions<T['_attributes']>,
 		attributes: string[]
-	): Promise<UserAttributes | null> {
-		const user = await db.User.findOne({
+	): Promise<T['_attributes'] | null> {
+		const data = await this.model.findOne({
 			where: whereClause,
 			attributes,
 			raw: true,
 		});
 
-		if (!user) {
+		if (!data) {
 			return null;
 		}
 
-		return user;
+		return data as T['_attributes'];
 	}
 
-	async findOldData(
-		oldData: any,
-		whereClause: WhereOptions<UserAttributes>
-	): Promise<UserAttributes | null> {
-		const user = await db.User.findOne({
+	async findAndUpdate(
+		oldData: Partial<T['_creationAttributes']>,
+		whereClause: WhereOptions<T['_attributes']>
+	): Promise<T['_attributes'] | null> {
+		const data = await this.model.findOne({
 			where: whereClause,
-
 			raw: true,
 		});
 
-		if (!user) {
+		if (!data) {
 			return null;
 		}
 
-		const updatedData = { ...user, ...oldData };
+		const updatedData = { ...data, ...oldData };
 
 		console.log(updatedData);
 
-		return updatedData;
+		return updatedData as T['_attributes'];
 	}
 
-	async updateData(
-		updateData: Partial<UserAttributes | undefined>,
-		whereClause: WhereOptions<UserAttributes>
+	async update(
+		updateData: Partial<T['_creationAttributes']>,
+		whereClause: WhereOptions<T['_attributes']>
 	): Promise<number> {
 		try {
-			const [numRowsUpdated] = await db.User.update(updateData, {
+			const [numRowsUpdated] = await this.model.update(updateData, {
 				where: whereClause,
 			});
 
@@ -145,68 +101,12 @@ class SequelizeServiceHelper {
 		}
 	}
 
-	async deleteData(userId: number): Promise<boolean> {
-		const user = await db.User.findByPk(userId);
-		if (!user) {
+	async delete(id: number): Promise<boolean> {
+		const data = await this.model.findByPk(id);
+		if (!data) {
 			return false;
 		}
-		await user?.destroy();
+		await data?.destroy();
 		return true;
 	}
-
-	// async findTwoFactorSecret(
-	// 	whereClause: object
-	// ): Promise<TwoFactorSecretAttributes | null> {
-	// 	const secret = await db.TwoFactorSecret.findOne({
-	// 		where: whereClause as WhereOptions<TwoFactorSecretAttributes>,
-	// 		raw: true,
-	// 	});
-
-	// 	if (!secret) {
-	// 		return null;
-	// 	}
-
-	// 	return secret;
-	// }
-
-	// async createTwoFactorSecret(
-	// 	whereClause: object
-	// ): Promise<TwoFactorSecretAttributes> {
-	// 	const newSecret = await db.TwoFactorSecret.create(
-	// 		whereClause as TwoFactorSecretAttributes
-	// 	);
-	// 	return newSecret.get({ plain: true });
-	// }
-
-	// async updateTwoFactorSecret(
-	// 	secret: string,
-	// 	email: string
-	// ): Promise<TwoFactorSecretAttributes | null> {
-	// 	const existingSecret = await db.TwoFactorSecret.findOne({
-	// 		where: {
-	// 			email,
-	// 		},
-	// 		raw: true,
-	// 	});
-	// 	if (!existingSecret) return null;
-
-	// 	await existingSecret.update({ secret }, { where: { email } });
-
-	// 	return existingSecret.get({ plain: true });
-	// }
-
-	// async deleteTwoFactorSecret(email: string): Promise<boolean> {
-	// 	const secret = await db.TwoFactorSecret.findOne({
-	// 		where: { email },
-	// 	});
-	// 	if (!email) return false;
-	// 	if (secret !== null && secret !== undefined) {
-	// 		await secret.destroy();
-	// 	}
-	// 	return true;
-	// }
 }
-
-const queryData = new SequelizeServiceHelper();
-
-export default queryData;

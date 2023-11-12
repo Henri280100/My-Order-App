@@ -1,7 +1,6 @@
-import { SequelizeHelper } from '../helpers/sequelize-query.helpers';
+import { ErrorCodes } from '../enums/errors-code.enums';
+import queryData from '../helpers/sequelize-query.helpers';
 import db from '../models';
-
-const dataHelper = new SequelizeHelper(db.User);
 
 export const getOne = (userId: number) =>
 	new Promise(async (resolve, reject) => {
@@ -26,7 +25,7 @@ export const getOne = (userId: number) =>
 				],
 			});
 			resolve({
-				err: response ? 0 : 1,
+				err: response ? ErrorCodes.SUCCESS : ErrorCodes.USER_NOT_FOUND,
 				mess: response ? 'Avaliable user' : 'Invalid user',
 				userData: response,
 			});
@@ -43,9 +42,9 @@ export const getOne = (userId: number) =>
 export const getAllUser = () =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const response = await dataHelper.findAll();
+			const response = await queryData.findAll(db.User);
 			resolve({
-				err: response ? 0 : 1,
+				err: response ? ErrorCodes.SUCCESS : ErrorCodes.USER_NOT_FOUND,
 				mess: response
 					? 'All users retrieved successfully'
 					: 'No users found 😥',
@@ -54,7 +53,7 @@ export const getAllUser = () =>
 		} catch (error) {
 			if (error instanceof Error)
 				reject({
-					err: 1,
+					err: ErrorCodes.INTERNAL_SERVER_ERROR,
 					mess: 'Internal server error',
 					error: error.message,
 				});
@@ -64,17 +63,56 @@ export const getAllUser = () =>
 export const updateUser = (userId: number, userData: any) =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const response = await dataHelper.update(userData, {
+			const response = await queryData.update(db.User, userData, {
 				id: userId,
 			});
 			resolve({
-				err: response ? 0 : 1,
+				err: response ? ErrorCodes.SUCCESS : ErrorCodes.UPDATED_FAILED,
 				mess: response ? 'Update user success' : 'Update user failed',
 			});
 		} catch (error) {
 			if (error instanceof Error)
 				reject({
-					err: 1,
+					err: ErrorCodes.INTERNAL_SERVER_ERROR,
+					mess: 'Internal server error',
+					error: error.message,
+				});
+		}
+	});
+
+export const findUserById = (userId: number) =>
+	new Promise(async (resolve, reject) => {
+		try {
+			const response = await queryData.findById(db.User, userId);
+			resolve({
+				error: response ? ErrorCodes.SUCCESS : ErrorCodes.INVALID_ID,
+				mess: response ? `Available user ${userId}` : 'Invalid user id!',
+				userData: response,
+			});
+		} catch (error) {
+			if (error instanceof Error)
+				reject({
+					err: ErrorCodes.INTERNAL_SERVER_ERROR,
+					mess: 'Internal server error',
+					error: error.message,
+				});
+		}
+	});
+
+export const deleteUserById = (userId: number) =>
+	new Promise(async (resolve, reject) => {
+		try {
+			const response = await queryData.delete(db.User, userId);
+			resolve({
+				error: response ? ErrorCodes.SUCCESS : ErrorCodes.FAILED,
+				mess: response
+					? `Delete user ${userId} successfully`
+					: 'Unable to delete user',
+			});
+		} catch (error) {
+			if (error instanceof Error)
+				reject({
+					err: ErrorCodes.INTERNAL_SERVER_ERROR,
 					mess: 'Internal server error',
 					error: error.message,
 				});

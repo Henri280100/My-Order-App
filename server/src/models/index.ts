@@ -15,7 +15,7 @@ const dbPassword = databaseConnection.password;
 const database = databaseConnection.database;
 const dbDialect = databaseConnection.dialect;
 
-const sequelize = new Sequelize(database, dbUserName, dbPassword, {
+export const sequelize = new Sequelize(database, dbUserName, dbPassword, {
 	host: dbHost,
 	dialect: 'mysql',
 	pool: {

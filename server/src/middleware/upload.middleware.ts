@@ -33,11 +33,11 @@ const checkFileType = (file: Express.Multer.File, cb: any) => {
 };
 
 const upload = multer({
-	storage,
+	storage: storage,
 	limits: { fileSize: 1000000 },
 	fileFilter: (req, file, cb) => {
 		checkFileType(file, cb);
 	},
-}).single('image');
+});
 
 export default upload;

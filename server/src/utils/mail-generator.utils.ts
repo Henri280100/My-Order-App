@@ -20,7 +20,7 @@ export const emailVerifyGen = ({ fullname, id, accessToken }: any) => {
 				button: {
 					color: '#22BC66',
 					text: 'Confirm your verification',
-					link: `http://localhost:3000/api/v1/auth/verify/${id}/${accessToken}`,
+					link: `http://localhost:4200/auth/email-verification;id=${id};accessToken=${accessToken}`,
 				},
 			},
 

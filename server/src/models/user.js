@@ -34,6 +34,7 @@ module.exports = (sequelize, DataTypes) => {
 			verificationStatus: DataTypes.STRING,
 			rememberMe: DataTypes.BOOLEAN,
 			genders: DataTypes.STRING,
+
 			// secret_code: DataTypes.STRING,
 			// twoFactorEnabled: DataTypes.BOOLEAN,
 		},

@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 
-export const comparePassword = (password: string, hashedPassword: string) => {
+export const comparePassword = (password: any, hashedPassword: any) => {
 	try {
 		const isMatch = bcrypt.compareSync(password, hashedPassword);
 		return isMatch;

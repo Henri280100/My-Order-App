@@ -13,9 +13,9 @@ import {
 import {
 	badRequest,
 	internalServerError,
+	tooManyRequest,
 } from '../middleware/handle-errors.middleware';
-import upload from '../middleware/upload.middleware';
-import { ROLES } from '../helpers/roles_enum.helpers';
+import cloudinary from 'cloudinary';
 
 const limiter = new RateLimiterMemory({
 	points: 5, // Maximum number of failed login attempts before lockout
@@ -27,6 +27,19 @@ const rateLimiterMiddleware = rateLimit({
 	max: 5, // limit each IP to 5 requests per windowMs
 });
 
+const resendEmailLimiter = rateLimit({
+	windowMs: 60000,
+	max: 3, // 3 requests per minute
+	message: 'Too many request. Please try again later.',
+});
+
+/**
+ * Registered a user in.
+ *
+ * @param req The request object.
+ * @param res The response object.
+ *
+ */
 export const registerCtrl = async (req: Request, res: Response) => {
 	try {
 		const { error } = joi
@@ -35,37 +48,37 @@ export const registerCtrl = async (req: Request, res: Response) => {
 				email,
 				password,
 				confirmpassword,
-				role_code: joi.string().default(ROLES.User),
 			})
+			.options({ allowUnknown: true })
 			.validate(req.body);
-		if (error) return badRequest(error.details[0].message, res);
-		upload(req, res, async (err: any) => {
-			if (err instanceof Error) {
-				return res.status(400).json({
-					error: err.message,
-				});
-			}
-			const userData = {
-				fullname: req.body.fullname,
-				email: req.body.email,
-				password: req.body.password,
-				confirmpassword: req.body.confirmpassword,
-				genders: req.body.genders,
-				avatar: req.file ? req.file.filename : undefined,
-				role_code:
-					req.body.role_code === ROLES.User ? ROLES.Admin : req.body.role_code,
-			};
-			const response = await services.RegisterService(userData);
-			return res.status(200).json(response);
-		});
+		if (error) {
+			return badRequest(error.details[0].message, res);
+		}
+		const response = await services.RegisterService(req.body);
+
+		return res.status(200).json(response);
 	} catch (err) {
 		if (err instanceof Error)
 			throw new Error(`Error at ${err.message}, ${internalServerError(res)}`);
 	}
 };
 
-export const loginCtrl = async (req: Request, res: Response) => {
+/**
+ * Logs a user in.
+ *
+ * @param req The request object.
+ * @param res The response object.
+ * @param next The next middleware function.
+ */
+export const loginCtrl = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
+		// Check if user access token has been revoked
+		// await checkIsAccessTokenRevoked(req, res, next);
+
 		const { error } = joi.object({ email, password }).validate(req.body);
 
 		if (error) return badRequest(error.details[0].message, res);
@@ -88,6 +101,8 @@ export const loginCtrl = async (req: Request, res: Response) => {
 					console.log('fail');
 				});
 		}
+
+		req.session.cookie = response.headers;
 
 		return res.status(200).json(response);
 	} catch (err) {
@@ -160,12 +175,27 @@ export const verificationCtrl = async (req: Request, res: Response) => {
 	}
 };
 
+export const resendVerificationEmail = async (req: Request, res: Response) => {
+	try {
+		const resendEmailAllowed = resendEmailLimiter;
+
+		if (!resendEmailAllowed) {
+			return tooManyRequest(res);
+		}
+
+		const response = await services.ResendVerificationEmail(req.body);
+		return res.status(200).send(response);
+	} catch (error) {
+		if (error instanceof Error) throw new Error(`Error ${error.message}`);
+	}
+};
+
 export const forgotPasswordCtrl = async (req: Request, res: Response) => {
 	try {
 		const { error } = joi.object({ email }).validate(req.body);
 		if (error) return badRequest(error.details[0].message, res);
 
-		const response = await services.ForgotPasswordService(req.body.email);
+		const response = await services.ForgotPasswordService(req.body);
 		return res.status(200).json(response);
 	} catch (err) {
 		if (err instanceof Error)
@@ -190,6 +220,19 @@ export const resetPasswordCtrl = async (req: Request, res: Response) => {
 			req.body
 		);
 		return res.status(200).json(response);
+	} catch (err) {
+		if (err instanceof Error)
+			throw new Error(`Error at ${err.message}, ${internalServerError(res)}`);
+	}
+};
+
+export const uploadAvatarCtrl = async (req: Request, res: Response) => {
+	try {
+		if (req.file) {
+			res.send('File uploaded successfully');
+		} else {
+			res.status(400).send('Please upload a valid image');
+		}
 	} catch (err) {
 		if (err instanceof Error)
 			throw new Error(`Error at ${err.message}, ${internalServerError(res)}`);

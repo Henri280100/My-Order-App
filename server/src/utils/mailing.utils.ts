@@ -3,13 +3,13 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: __dirname + '/.env' });
 
-export const sendingMail = async ({ from, to, subject, html }: any) => {
+export const sendingMail = (data: any) => {
 	try {
 		let mailOptions = {
-			from,
-			to,
-			subject,
-			html,
+			from: data.from,
+			to: data.to,
+			subject: data.to,
+			html: data.html,
 		};
 
 		const transporter = nodemailer.createTransport({
@@ -25,9 +25,10 @@ export const sendingMail = async ({ from, to, subject, html }: any) => {
 
 		return transporter.sendMail(mailOptions, (err, info) => {
 			if (err) {
-				console.error(err);
+				throw new Error(err.message);
+				// console.error(err);
 			} else {
-				console.log(info, 'Send successfully');
+				console.log(info.response, 'Send successfully');
 			}
 		});
 	} catch (error) {

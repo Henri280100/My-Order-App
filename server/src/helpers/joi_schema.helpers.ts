@@ -24,3 +24,7 @@ export const confirmpassword = joi
 export const validateRefreshToken = joi.string().required();
 
 export const validateEmailVerification = joi.string().required().email();
+
+export const role_code = joi.string().required();
+
+export const avatar = joi.string();

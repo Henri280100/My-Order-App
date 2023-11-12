@@ -24,6 +24,7 @@ module.exports = {
 			role_code: { type: Sequelize.STRING, defaultValue: 'RU' },
 			avatar: { type: Sequelize.STRING },
 			refresh_token: { type: Sequelize.STRING },
+
 			verificationStatus: {
 				type: Sequelize.STRING,
 				allowNull: false,
@@ -38,15 +39,6 @@ module.exports = {
 				type: Sequelize.STRING,
 				defaultValue: 'Male' | 'Female' | '',
 			},
-			// secret_code: {
-			// 	type: Sequelize.STRING,
-			// 	allowNull: true,
-			// },
-			// twoFactorEnabled: {
-			// 	type: Sequelize.BOOLEAN,
-			// 	allowNull: false,
-			// 	defaultValue: false,
-			// },
 			createdAt: {
 				allowNull: false,
 				type: Sequelize.DATE,

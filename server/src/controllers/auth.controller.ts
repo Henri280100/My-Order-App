@@ -6,9 +6,9 @@ import * as services from '../services/index.service';
 import {
 	email,
 	password,
-	fullname,
 	confirmpassword,
 	validateRefreshToken,
+	fullname,
 } from '../helpers/joi_schema.helpers';
 import {
 	badRequest,
@@ -59,7 +59,9 @@ export const registerCtrl = async (req: Request, res: Response) => {
 		return res.status(200).json(response);
 	} catch (err) {
 		if (err instanceof Error)
-			throw new Error(`Error at ${err.message}, ${internalServerError(res)}`);
+			res.status(400).send({
+				error: `Error at ${err.message}, ${internalServerError(res)}`,
+			});
 	}
 };
 
@@ -107,7 +109,9 @@ export const loginCtrl = async (
 		return res.status(200).json(response);
 	} catch (err) {
 		if (err instanceof Error)
-			throw new Error(`Error at ${err.message}, ${internalServerError(res)}`);
+			res.status(400).send({
+				error: `Error at ${err.message}, ${internalServerError(res)}`,
+			});
 	}
 };
 
@@ -144,7 +148,9 @@ export const refreshTokenCtrl = async (req: Request, res: Response) => {
 		return res.status(200).json(response);
 	} catch (err) {
 		if (err instanceof Error)
-			throw new Error(`Error at ${err.message}, ${internalServerError(res)}`);
+			res.status(400).send({
+				error: `Error at ${err.message}, ${internalServerError(res)}`,
+			});
 	}
 };
 
@@ -155,7 +161,9 @@ export const logoutUserCtrl = async (req: Request, res: Response) => {
 		return res.status(200).json(result);
 	} catch (err) {
 		if (err instanceof Error)
-			throw new Error(`Error at ${err.message}, ${internalServerError(res)}`);
+			res.status(400).send({
+				error: `Error at ${err.message}, ${internalServerError(res)}`,
+			});
 	}
 };
 
@@ -199,7 +207,9 @@ export const forgotPasswordCtrl = async (req: Request, res: Response) => {
 		return res.status(200).json(response);
 	} catch (err) {
 		if (err instanceof Error)
-			throw new Error(`Error at ${err.message}, ${internalServerError(res)}`);
+			res.status(400).send({
+				error: `Error at ${err.message}, ${internalServerError(res)}`,
+			});
 	}
 };
 
@@ -222,7 +232,9 @@ export const resetPasswordCtrl = async (req: Request, res: Response) => {
 		return res.status(200).json(response);
 	} catch (err) {
 		if (err instanceof Error)
-			throw new Error(`Error at ${err.message}, ${internalServerError(res)}`);
+			res.status(400).send({
+				error: `Error at ${err.message}, ${internalServerError(res)}`,
+			});
 	}
 };
 
@@ -235,6 +247,8 @@ export const uploadAvatarCtrl = async (req: Request, res: Response) => {
 		}
 	} catch (err) {
 		if (err instanceof Error)
-			throw new Error(`Error at ${err.message}, ${internalServerError(res)}`);
+			res.status(400).send({
+				error: `Error at ${err.message}, ${internalServerError(res)}`,
+			});
 	}
 };

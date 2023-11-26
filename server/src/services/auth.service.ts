@@ -23,7 +23,9 @@ import splitTokenUtils from '../utils/split-token.utils';
 import queueUtils from '../utils/queue.utils';
 
 dotenv.config({ path: __dirname + '/.env' });
-
+/**
+ * This register function is for admin and user usage, not for restaurant and driver auth
+ */
 export const RegisterService = ({
 	fullname,
 	email,
@@ -87,7 +89,7 @@ export const RegisterService = ({
 								role_code: userData.role_code,
 							},
 							process.env.JWT_SECRET as string,
-							{ expiresIn: '60d' }
+							{ expiresIn: '24h' }
 					  )
 					: null;
 
@@ -97,37 +99,52 @@ export const RegisterService = ({
 								id: userData.id,
 							},
 							process.env.JWT_SECRET_REFRESH_TOKEN as string,
-							{ expiresIn: '24h' }
+							{ expiresIn: '30d' }
 					  )
 					: null;
 
-				queueUtils.addJob({
-					name: 'Sending an verification email',
-					data: {
-						from: process.env.EMAIL_ID,
-						to: `${email}`,
-						subject: 'Account verification',
-						html: emailVerifyGen({
-							fullname,
-							id: userData.id,
-							accessToken,
-						}),
-					},
-				});
+				if (
+					userData.role_code === ROLES.Admin ||
+					userData.role_code === ROLES.Moderator
+				) {
+					queueUtils.addJob({
+						name: 'Sending an verification email',
+						data: {
+							from: process.env.EMAIL_ID,
+							to: `${email}`,
+							subject: 'Admin Account verification',
+							html: emailVerifyGen({
+								fullname,
+								id: userData.id,
+								accessToken,
+							}),
+						},
+					});
 
-				const mail = queueUtils.processJobs((job) => {
-					sendingMail(job.data);
-				});
-
-				resolve({
-					success: true,
-					err: ErrorCodes.SUCCESS,
-					mess: 'Registered successfully',
-					accessToken: accessToken ? `Bearer ${accessToken}` : accessToken,
-					refreshToken: refreshToken ? `Bearer ${refreshToken}` : refreshToken,
-					authSendingMail: accessToken ? mail : null,
-					result: userData,
-				});
+					const mail = queueUtils.processJobs((job) => {
+						sendingMail(job.data);
+					});
+					resolve({
+						success: true,
+						err: ErrorCodes.SUCCESS,
+						mess: 'Registered successfully',
+						accessToken: accessToken ? `Bearer ${accessToken}` : accessToken,
+						refreshToken: refreshToken
+							? `Bearer ${refreshToken}`
+							: refreshToken,
+						authSendingMail: accessToken ? mail : null,
+						result: userData,
+					});
+				} else if (userData.role_code === ROLES.User) {
+					queueUtils.addJob({
+						name: 'Sending an verification email',
+						data: {
+							from: process.env.EMAIL_ID,
+							to: `${email}`,
+							subject: 'Account verification',
+						},
+					});
+				}
 
 				if (refreshToken) {
 					await queryData.update(
@@ -194,7 +211,7 @@ export const LoginService = ({
 
 			console.log(isChecked);
 
-			const expiresIn = rememberMe ? '60d' : '24h';
+			const expiresIn = rememberMe ? '24h' : '30d';
 
 			const accessToken = isChecked
 				? jwt.sign(
@@ -393,7 +410,7 @@ export const ResendVerificationEmail = ({
 						role_code: response.role_code,
 					},
 					process.env.JWT_SECRET as string,
-					{ expiresIn: '60d' }
+					{ expiresIn: '24h' }
 				);
 
 				queueUtils.addJob({
@@ -449,7 +466,7 @@ export const ForgotPasswordService = ({
 						role_code: user.role_code,
 					},
 					process.env.JWT_SECRET as string,
-					{ expiresIn: '60d' }
+					{ expiresIn: '24h' }
 				);
 
 				queueUtils.addJob({
@@ -461,7 +478,7 @@ export const ForgotPasswordService = ({
 						html: resetPasswordGen({
 							email,
 							id: user.id,
-							accessToken,
+							token: accessToken,
 						}),
 					},
 				});
@@ -489,13 +506,9 @@ export const ResetPasswordService = (
 ): Promise<ResetPasswordResponse> =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const response = await queryData.findAndUpdate(
-				db.User,
-				accessToken,
-				{
-					id: id,
-				}
-			);
+			const response = await queryData.findAndUpdate(db.User, accessToken, {
+				id: id,
+			});
 
 			if (!response) {
 				resolve({

@@ -1,3 +1,11 @@
 INSERT INTO Roles (code, value) VALUES ('RAD', 'Admin');
 INSERT INTO Roles (code, value) VALUES ('RM', 'Moderator');
 INSERT INTO Roles (code, value) VALUES ('RU', 'User');
+
+INSERT INTO REGISTERFORMS (typeCode, typeValue) VALUES ('PN', 'Personal');
+INSERT INTO REGISTERFORMS (typeCode, typeValue) VALUES ('OR', 'Organization');
+
+INSERT INTO REGISTERSTATUS (isRegisteredCode, isRegistered) VALUES (0, 'Already a member');
+INSERT INTO REGISTERSTATUS (isRegisteredCode, isRegistered) VALUES (1, 'New member');
+
+

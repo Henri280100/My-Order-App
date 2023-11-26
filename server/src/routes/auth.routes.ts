@@ -20,7 +20,10 @@ router.get(
 );
 router.post('/resend-verification-email', controllers.resendVerificationEmail);
 router.post('/forgot-password', controllers.forgotPasswordCtrl);
-router.post('/reset-password/:id/:token', controllers.resetPasswordCtrl);
+router.post(
+	'/reset-password;id=:id;accessToken=:token',
+	controllers.resetPasswordCtrl
+);
 router.post(
 	'/upload',
 	uploadCloud.single('avatar'),

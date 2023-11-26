@@ -111,7 +111,6 @@ export class SequelizeHelper {
 		try {
 			const data = await model.findOne({
 				where: whereClause,
-
 				raw: true,
 			});
 

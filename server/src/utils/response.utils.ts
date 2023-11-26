@@ -57,3 +57,27 @@ export interface RefreshTokenResponse {
 	accessToken?: string | null;
 	refreshToken?: string | null;
 }
+
+// Restaurant response
+export interface PartnerRegisterResponse {
+	success: boolean;
+	err: number;
+	mess: string;
+	sendingVerificationMail?: any;
+	accessToken?: any;
+	refreshToken?: any;
+	result?: any | null;
+}
+
+export interface IsPartnerRegisteredResponse {
+	success: boolean;
+	err: number;
+	mess: string;
+	isPartner?: boolean;
+}
+
+// restaurant end
+
+// Delivery driver response
+
+// End

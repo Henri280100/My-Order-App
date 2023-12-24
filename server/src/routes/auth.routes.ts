@@ -1,13 +1,11 @@
 import * as controllers from '../controllers';
 import express from 'express';
-import uploadCloud from '../middleware/uploader.middleware';
-import upload from '../middleware/upload.middleware';
 
 const router = express.Router();
 
 router.post(
 	'/register',
-	uploadCloud.single('avatar'),
+	// uploadCloud.single('avatar'),
 	controllers.registerCtrl
 );
 router.post('/login', controllers.rateLimitedLoginCtrl);
@@ -26,7 +24,7 @@ router.post(
 );
 router.post(
 	'/upload',
-	uploadCloud.single('avatar'),
+	// uploadCloud.single('avatar'),
 	controllers.uploadAvatarCtrl
 );
 

@@ -1,7 +1,6 @@
 import * as services from '../services/index.service';
 import { Request, Response } from 'express';
 import { internalServerError } from '../middleware/handle-errors.middleware';
-import upload from '../middleware/upload.middleware';
 
 export const getCurrentCtrl = async (req: Request, res: Response) => {
 	try {

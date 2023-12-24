@@ -1,32 +1,43 @@
 'use strict';
 module.exports = {
 	up: async (queryInterface, Sequelize) => {
-		await queryInterface.createTable('RegisterForms', {
+		await queryInterface.createTable('Drivers', {
 			id: {
 				allowNull: false,
 				autoIncrement: true,
 				primaryKey: true,
 				type: Sequelize.INTEGER,
 			},
-			typeCode: {
+			name: {
 				type: Sequelize.STRING,
 			},
-			typeValue: {
+			phone: {
 				type: Sequelize.STRING,
+			},
+			location: {
+				type: Sequelize.STRING,
+			},
+			email: {
+				type: Sequelize.STRING,
+			},
+			vehicleTypes: {
+				type: Sequelize.STRING,
+			},
+			availability: {
+				type: Sequelize.STRING,
+				defaultValue: 'no available',
 			},
 			createdAt: {
 				allowNull: false,
-				type: 'TIMESTAMP',
-				defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+				type: Sequelize.DATE,
 			},
 			updatedAt: {
 				allowNull: false,
-				type: 'TIMESTAMP',
-				defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+				type: Sequelize.DATE,
 			},
 		});
 	},
 	down: async (queryInterface, Sequelize) => {
-		await queryInterface.dropTable('RegisterForms');
+		await queryInterface.dropTable('Drivers');
 	},
 };

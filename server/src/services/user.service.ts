@@ -1,4 +1,4 @@
-import { ErrorCodes } from '../enums/errors-code.enums';
+import { ErrorCodes } from '../enums/errors.enums';
 import queryData from '../helpers/sequelize-query.helpers';
 import db from '../models';
 

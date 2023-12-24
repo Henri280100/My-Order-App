@@ -6,11 +6,10 @@ import {
 	isMod,
 	isModeratorOrAdmin,
 } from '../middleware/verify-roles.middleware';
-import upload from '../middleware/upload.middleware';
 
 const router = express.Router();
 // PUBLIC ROUTES
-router.put('/update-user/:id', upload.single('image'), user.updateUserCtrl);
+router.put('/update-user/:id', user.updateUserCtrl);
 router.get('/all-users', user.getALlUserCtrl);
 router.get('/user-id/:id', user.getUserByIdCtrl);
 router.delete('/delete/:id', user.deleteUserCtrl);

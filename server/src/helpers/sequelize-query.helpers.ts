@@ -107,11 +107,19 @@ export class SequelizeHelper {
 	 * @param whereClause: option
 	 * @returns
 	 */
-	async findOne(model: typeof db, whereClause: object) {
+	async findOne(
+		model: typeof db,
+		whereClause: object,
+		attributesClause?: object,
+		includeClause?: [object],
+		raw?: boolean
+	) {
 		try {
 			const data = await model.findOne({
 				where: whereClause,
-				raw: true,
+				attributes: attributesClause,
+				include: includeClause,
+				raw: raw,
 			});
 
 			if (!data) {

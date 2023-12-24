@@ -20,6 +20,7 @@ module.exports = (sequelize, DataTypes) => {
 			description: DataTypes.STRING,
 			price: DataTypes.STRING,
 			menuImg: DataTypes.STRING,
+			recommended: DataTypes.STRING,
 		},
 		{
 			sequelize,

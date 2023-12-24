@@ -8,6 +8,10 @@ module.exports = {
 				primaryKey: true,
 				type: Sequelize.INTEGER,
 			},
+			partnerId: {
+				allowNull: false,
+				type: Sequelize.INTEGER,
+			},
 			name: {
 				type: Sequelize.STRING,
 			},
@@ -39,9 +43,10 @@ module.exports = {
 				type: Sequelize.FLOAT,
 				allowNull: false,
 			},
-			registerType: {
+			reviewsId: {
 				type: Sequelize.STRING,
 			},
+
 			createdAt: {
 				allowNull: false,
 				type: Sequelize.DATE,

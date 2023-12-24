@@ -12,17 +12,27 @@ module.exports = (sequelize, DataTypes) => {
 				foreignKey: 'restaurantId',
 			});
 
-			Restaurant.belongsTo(models.RegisterForm, {
-				foreignKey: 'restaurantId',
-			});
+			// Restaurant.belongsTo(models.Business, {
+			// 	foreignKey: 'businessCode',
+			// 	targetKey: 'code',
+			// 	as: 'businessData',
+			// });
 
 			Restaurant.hasOne(models.PartnerInformation, {
-				foreignKey: 'restaurantId',
+				foreignKey: 'partnerId',
+				as: 'partnerData',
+			});
+
+			Restaurant.belongsTo(models.Rating, {
+				foreignKey: 'ratingId',
+				targetKey: 'id',
+				as: 'reviewsData',
 			});
 		}
 	}
 	Restaurant.init(
 		{
+			partnerId: DataTypes.INTEGER,
 			name: DataTypes.STRING,
 			address: DataTypes.STRING,
 			city: DataTypes.STRING,
@@ -32,8 +42,7 @@ module.exports = (sequelize, DataTypes) => {
 			statusOpen: DataTypes.INTEGER,
 			branches: DataTypes.INTEGER,
 			restaurantImg: DataTypes.STRING,
-			rating: DataTypes.FLOAT,
-			registerType: DataTypes.STRING,
+			ratingId: DataTypes.FLOAT,
 		},
 		{
 			sequelize,

@@ -8,11 +8,14 @@ module.exports = {
 				primaryKey: true,
 				type: Sequelize.INTEGER,
 			},
+			// restaurantId: {
+			// 	type: Sequelize.INTEGER,
+			// },
 			contactName: {
 				type: Sequelize.STRING,
 			},
 			phoneNo: {
-				type: Sequelize.INTEGER,
+				type: Sequelize.STRING,
 			},
 			storeName: {
 				type: Sequelize.STRING,
@@ -38,6 +41,10 @@ module.exports = {
 			menuImg: {
 				type: Sequelize.STRING,
 			},
+			businessCode: {
+				type: Sequelize.STRING,
+			},
+
 			createdAt: {
 				allowNull: false,
 				type: Sequelize.DATE,

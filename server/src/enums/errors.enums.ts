@@ -24,3 +24,7 @@ export enum ErrorCodes {
 	IS_ALREADY_A_PARTNER = 23,
 	NOT_ALREADY_A_PARTNER = 24,
 }
+
+export enum ErrorMessage {
+	MISSING_PARAMETERS = 'Missing required input parameters',
+}

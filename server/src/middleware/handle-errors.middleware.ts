@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import createHttpError from 'http-errors';
-import { ErrorCodes } from '../enums/errors-code.enums';
+import { ErrorCodes } from '../enums/errors.enums';
 
 export const badRequest = (err: any, res: Response) => {
 	const error = createHttpError.BadRequest(err);

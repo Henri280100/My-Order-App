@@ -12,3 +12,5 @@ declare global {
 		}
 	}
 }
+
+type FileNameCallback = (error: Error | null, filename: string) => void;

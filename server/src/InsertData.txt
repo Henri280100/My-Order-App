@@ -2,10 +2,37 @@ INSERT INTO Roles (code, value) VALUES ('RAD', 'Admin');
 INSERT INTO Roles (code, value) VALUES ('RM', 'Moderator');
 INSERT INTO Roles (code, value) VALUES ('RU', 'User');
 
-INSERT INTO REGISTERFORMS (typeCode, typeValue) VALUES ('PN', 'Personal');
-INSERT INTO REGISTERFORMS (typeCode, typeValue) VALUES ('OR', 'Organization');
+INSERT INTO BUSINESSES (code, type) VALUES ('SP', 'Sole proprietorship');
+INSERT INTO BUSINESSES (code, type) VALUES ('P', 'Partnership');
+INSERT INTO BUSINESSES (code, type) VALUES ('CP', 'Company');
+INSERT INTO BUSINESSES (code, type) VALUES ('PS', 'Public sector');
+INSERT INTO BUSINESSES (code, type) VALUES ('TCFC', 'Trusts, charities, foundations and clubs');
+INSERT INTO BUSINESSES (code, type) VALUES ('IB', 'Individual/ Business household');
 
-INSERT INTO REGISTERSTATUS (isRegisteredCode, isRegistered) VALUES (0, 'Already a member');
-INSERT INTO REGISTERSTATUS (isRegisteredCode, isRegistered) VALUES (1, 'New member');
+
+INSERT INTO VEHICLES (types, brands) VALUES ('Motorcycle', 'Honda');
+INSERT INTO VEHICLES (types, brands) VALUES ('Motorcycle', 'Yamaha');
+INSERT INTO VEHICLES (types, brands) VALUES ('Motorcycle', 'Suzuki');
+INSERT INTO VEHICLES (types, brands) VALUES ('Motorcycle', 'Kawasaki');
+INSERT INTO VEHICLES (types, brands) VALUES ('Motorcycle', 'BMW');
+INSERT INTO VEHICLES (types, brands) VALUES ('Motorcycle', 'KTM');
+INSERT INTO VEHICLES (types, brands) VALUES ('Motorcycle', 'Ducati');
+INSERT INTO VEHICLES (types, brands) VALUES ('Motorcycle', 'Benelli');
+INSERT INTO VEHICLES (types, brands) VALUES ('Motorcycle', 'Vespa');
+INSERT INTO VEHICLES (types, brands) VALUES ('Car', 'Tesla');
+INSERT INTO VEHICLES (types, brands) VALUES ('Car', 'Honda');
+INSERT INTO VEHICLES (types, brands) VALUES ('Car', 'BMW');
+INSERT INTO VEHICLES (types, brands) VALUES ('Car', 'Hyundai');
+INSERT INTO VEHICLES (types, brands) VALUES ('Car', 'Ford');
+INSERT INTO VEHICLES (types, brands) VALUES ('Car', 'Mazda');
+INSERT INTO VEHICLES (types, brands) VALUES ('Car', 'Lexus');
+INSERT INTO VEHICLES (types, brands) VALUES ('Car', 'Volkswagen');
+INSERT INTO VEHICLES (types, brands) VALUES ('Car', 'Subaru');
+
+INSERT INTO Discounts (title, description, expires) VALUES ('FreeShip discount 8K', 'Apply for all the stores', '2024-06-03 09:34:21');
+INSERT INTO Discounts (title, description, expires) VALUES ('Offers for new friends', 'Discount 9.000d, applies for first-time customers', '2024-03-03 09:34:21');
 
 
+INSERT INTO delivery_options (priorityName, priorityTimes, prices) VALUES ('Priority', '< 35mins', 65.000);
+INSERT INTO delivery_options (priorityName, priorityTimes, prices) VALUES ('Standard', '35mins', 60.000);
+INSERT INTO delivery_options (priorityName, priorityTimes, prices) VALUES ('Saver', '55mins', 57.000);

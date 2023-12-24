@@ -9,6 +9,13 @@ module.exports = (sequelize, DataTypes) => {
 		 */
 		static associate(models) {
 			// define association here
+			// RestaurantAuth.belongsTo(models.PartnerInformation, {
+			// 	foreignKey: 'phoneNo',
+			// 	//as: 'partnerDetailData',
+			// });
+			// RestaurantAuth.hasOne(models.PartnerInformation, {
+			// 	foreignKey: 'phoneNo',
+			// });
 		}
 	}
 	RestaurantAuth.init(

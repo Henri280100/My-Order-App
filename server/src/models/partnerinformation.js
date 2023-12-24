@@ -9,12 +9,22 @@ module.exports = (sequelize, DataTypes) => {
 		 */
 		static associate(models) {
 			// define association here
+			PartnerInformation.belongsTo(models.Business, {
+				foreignKey: 'businessCode',
+				targetKey: 'code',
+				as: 'businessData',
+			});
+
+			PartnerInformation.hasOne(models.RestaurantAuth, {
+				foreignKey: 'phoneNo',
+			});
 		}
 	}
 	PartnerInformation.init(
 		{
+			// restaurantId: DataTypes.INTEGER,
 			contactName: DataTypes.STRING,
-			phoneNo: DataTypes.INTEGER,
+			phoneNo: DataTypes.STRING,
 			storeName: DataTypes.STRING,
 			address: DataTypes.STRING,
 			city: DataTypes.STRING,
@@ -23,6 +33,7 @@ module.exports = (sequelize, DataTypes) => {
 			storeImg: DataTypes.STRING,
 			kitchenImg: DataTypes.STRING,
 			menuImg: DataTypes.STRING,
+			businessCode: DataTypes.STRING,
 		},
 		{
 			sequelize,

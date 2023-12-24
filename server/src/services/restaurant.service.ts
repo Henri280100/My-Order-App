@@ -1,17 +1,24 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import queryData from '../helpers/sequelize-query.helpers';
 import {
-	IsPartnerRegisteredResponse,
+	InfoResponse,
+	GenerateToken,
 	PartnerRegisterResponse,
+	StoreDetailInfoResponse,
 	VerifyEmailResponse,
+	comparePassword,
 	emailVerifyGen,
+	generateUUID,
 	hashPassword,
 	sendingMail,
+	LoginResponse,
 } from '../utils';
+
 import * as dotenv from 'dotenv';
 import db from '../models';
-import { ErrorCodes, Status } from '../enums';
+import { ErrorCodes, ErrorMessage, Status } from '../enums';
 import queueUtils from '../utils/queue.utils';
+
 dotenv.config({ path: __dirname + '/.env' });
 
 export const PartnerRegisterService = ({
@@ -30,59 +37,31 @@ export const PartnerRegisterService = ({
 			const isUserExisted = await queryData.findOne(db.RestaurantAuth, {
 				email: email,
 			});
-			// console.log(isUserExisted.password === password);
 
-			if (
-				isUserExisted.password === password ||
-				isUserExisted.email === email
-			) {
-				return reject('This user is already registered');
-			}
-
-			// const isPasswordExisted = await queryData.findOne(db.RestaurantAuth, {
-			// 	password: password,
-			// });
-
-			// console.log(isPasswordExisted);
-
-			// if (isPasswordExisted) {
-			// 	return reject('This password is already in use');
-			// }
-
-			if (password !== confirmPassword) {
-				return reject('The password and confirm password do not match');
-			}
-
-			if (!isUserExisted) {
+			if (isUserExisted && comparePassword(password, isUserExisted.password)) {
+				return reject('Password is already in use');
+			} else if (isUserExisted) {
+				return reject('Email is already in use');
+			} else {
 				const partnerData = await queryData.create(db.RestaurantAuth, {
+					id: generateUUID(),
 					email: email,
-					phoneNo,
-					confirmPassword: confirmPassword,
+					phoneNo: phoneNo,
 					password: hashPassword(password),
+					confirmPassword: confirmPassword,
 				});
-				console.log(partnerData);
-
-				if (!partnerData) {
-					return reject('User data is null');
-				}
-
 				const accessToken = partnerData
-					? jwt.sign(
+					? GenerateToken(
 							{
 								id: partnerData.id,
 								email: partnerData.email,
 							},
-							process.env.JWT_SECRET as string,
-							{ expiresIn: '24h' }
+							'24h'
 					  )
 					: null;
 
 				const refreshToken = partnerData
-					? jwt.sign(
-							{ id: partnerData.id },
-							process.env.JWT_SECRET_REFRESH_TOKEN as string,
-							{ expiresIn: '30d' }
-					  )
+					? GenerateToken({ id: partnerData.id }, '30d')
 					: null;
 
 				queueUtils.addJob({
@@ -124,10 +103,7 @@ export const PartnerRegisterService = ({
 				}
 			}
 		} catch (error) {
-			if (error instanceof Error)
-				reject(
-					`This error: ${error.name} may cause by this ${error.message}, ${error.stack}`
-				);
+			return reject(error);
 		}
 	});
 
@@ -193,48 +169,142 @@ export const EmailVerificationService = (
 		}
 	});
 
-// Check registration status
-export const IsPartnerService = ({
-	partnerEmail,
+export const LoginService = ({
+	email,
+	password,
 }: {
-	partnerEmail: string;
-}): Promise<IsPartnerRegisteredResponse> =>
+	email: string;
+	password: string;
+}): Promise<LoginResponse> =>
 	new Promise(async (resolve, reject) => {
 		try {
-			// Is already registered?
-			const isPartnerRegistered = await queryData.findOne(db.RestaurantStatus, {
-				partnerEmail: partnerEmail,
+			const isLogin = await queryData.findOne(db.RestaurantAuth, {
+				email,
+				password,
 			});
 
-			//console.log(isPartnerRegistered.email);
+			const isChecked = isLogin && comparePassword(password, isLogin?.password);
 
-			if (isPartnerRegistered) {
-				if (isPartnerRegistered.isPartner) {
-					return reject(
-						'You are already a partner with us. Thank you for your support!'
-					);
-				} else {
-					resolve({
-						success: true,
-						isPartner: false,
-						err: ErrorCodes.NOT_ALREADY_A_PARTNER,
-						mess: 'You are not a partner yet.',
-					});
-				}
-				await queryData.update(
-					db.RestaurantStatus,
-					{
-						isPartner: true,
-					},
-					{ id: isPartnerRegistered.id }
-				);
+			const accessToken = isChecked
+				? GenerateToken({ id: isLogin.id, email: isLogin.email }, '24h')
+				: null;
+
+			const refreshToken = isChecked
+				? GenerateToken({ id: isLogin.id }, '30d')
+				: null;
+
+			if (isLogin?.verificationStatus === Status.Pending) {
+				return reject('Please verify your email address before login');
 			} else {
-				return reject("We can't find the email address in our database.");
+				resolve({
+					success: true,
+					err: ErrorCodes.FAILED,
+					mess: accessToken
+						? 'Login successfully'
+						: isLogin
+						? 'Invalid password'
+						: 'Invalid email',
+					headers: `${accessToken}`,
+				});
+			}
+
+			if (refreshToken) {
+				await queryData.update(
+					db.RestaurantAuth,
+					{
+						refreshToken: refreshToken,
+					},
+					{ id: isLogin?.id }
+				);
 			}
 		} catch (error) {
-			if (error instanceof Error)
+			return reject(error);
+		}
+	});
+
+export const StoreDetailInfoService = ({
+	contactName,
+	phoneNo,
+	storeName,
+	address,
+	city,
+	district,
+	wards,
+	storeImg,
+	kitchenImg,
+	menuImg,
+	businessCode,
+}: {
+	contactName: string;
+	phoneNo: string;
+	storeName: string;
+	address: string;
+	city: string;
+	district: string;
+	wards: string;
+	storeImg: any;
+	kitchenImg: any;
+	menuImg: any;
+	businessCode: string;
+}): Promise<StoreDetailInfoResponse> =>
+	new Promise(async (resolve, reject) => {
+		try {
+			const checkIsPartnerCreated = await queryData.findOne(db.RestaurantAuth, {
+				phoneNo,
+			});
+
+			if (!checkIsPartnerCreated) {
 				return reject(
-					`This error: ${error.name} may cause by this ${error.message}, ${error.stack}`
+					'Please finish the first step to complete the assignment'
 				);
+			} else {
+				const createStore = await queryData.create(db.PartnerInformation, {
+					id: generateUUID(),
+					contactName,
+					phoneNo,
+					storeName,
+					address,
+					city,
+					district,
+					wards,
+					storeImg,
+					kitchenImg,
+					menuImg,
+					businessCode,
+				});
+
+				if (createStore) {
+					resolve({
+						success: true,
+						mess: 'You have successfully fill up your store information, please continue fill up your detail information',
+						err: ErrorCodes.SUCCESS,
+						result: createStore,
+					});
+				} else {
+					return reject('Failed to create your information, please try again');
+				}
+			}
+		} catch (error) {
+			return reject(error);
+		}
+	});
+
+// Next step to detail info
+export const createDetailInfo = ({
+	restaurantData: { name, ...restaurantInfoData },
+	ownerData: { idFrontFaceUrl, idBackFaceUrl },
+	contractData: { fullname, ...contractInfoData },
+	bankData: { accountOwner, ...bankInfoData },
+}: {
+	restaurantData: { name: string };
+	ownerData: { idFrontFaceUrl: string; idBackFaceUrl: string };
+	contractData: { fullname: string };
+	bankData: { accountOwner: string };
+}): Promise<InfoResponse> =>
+	new Promise(async (resolve, reject) => {
+		try {
+
+		} catch (error) {
+			return reject(error);
 		}
 	});

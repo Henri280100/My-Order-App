@@ -209,8 +209,6 @@ export const LoginService = ({
 			const isChecked =
 				response && comparePassword(password, response?.password);
 
-			console.log(isChecked);
-
 			const expiresIn = rememberMe ? '24h' : '30d';
 
 			const accessToken = isChecked

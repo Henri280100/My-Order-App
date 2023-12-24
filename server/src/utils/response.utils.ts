@@ -76,6 +76,22 @@ export interface IsPartnerRegisteredResponse {
 	isPartner?: boolean;
 }
 
+export interface StoreDetailInfoResponse {
+	success: boolean;
+	err: number;
+	mess: string;
+	result?: any;
+}
+
+export interface InfoResponse {
+	success: boolean;
+	err: number;
+	mess: string;
+	result?: any;
+}
+
+
+
 // restaurant end
 
 // Delivery driver response

@@ -16,10 +16,17 @@ import {
 	wards,
 	phoneNo,
 	businessCode,
+	name,
+	cuisine,
+	statusOpen,
+	branches,
+	restaurantImg,
 } from '../helpers/joi_schema.helpers';
 import {
+	CreateDetailInfo,
 	EmailVerificationService,
-	LoginService,
+	MerchantLoginService,
+	OnCreateRestaurant,
 	PartnerRegisterService,
 	StoreDetailInfoService,
 } from '../services/restaurant.service';
@@ -100,6 +107,15 @@ export const verifyEmailCtrl = async (
 	}
 };
 
+export const resendEmail = (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+	} catch (error) {}
+};
+
 export const merchantLoginCtrl = async (
 	req: Request,
 	res: Response,
@@ -114,7 +130,7 @@ export const merchantLoginCtrl = async (
 			return badRequest(error.details[0].message, res);
 		}
 
-		await LoginService(req.body)
+		await MerchantLoginService(req.body)
 			.then((data) => {
 				return res.status(200).json({ data });
 			})
@@ -153,9 +169,9 @@ export const storeDetailInfoCtrl = async (
 			.options({ allowUnknown: true })
 			.validate({
 				...req.body,
-				storeImg: fileData.storeImg[0],
-				kitchenImg: fileData.kitchenImg[0],
-				menuImg: fileData.menuImg[0],
+				storeImg: (fileData.storeImg || [])[0],
+				kitchenImg: (fileData.kitchenImg || [])[0],
+				menuImg: (fileData.menuImg || [])[0],
 			});
 
 		if (error) {
@@ -186,9 +202,9 @@ export const storeDetailInfoCtrl = async (
 		}
 
 		const [storeImgUrl, kitchenImgUrl, menuImgUrl] = await Promise.all([
-			uploadToCloudinary(fileData.storeImg[0], 'store_img'),
-			uploadToCloudinary(fileData.kitchenImg[0], 'store_img'),
-			uploadToCloudinary(fileData.menuImg[0], 'store_img'),
+			uploadToCloudinary((fileData.storeImg || [])[0]),
+			uploadToCloudinary((fileData.kitchenImg || [])[0]),
+			uploadToCloudinary((fileData.menuImg || [])[0]),
 		]);
 
 		await StoreDetailInfoService({
@@ -210,14 +226,63 @@ export const storeDetailInfoCtrl = async (
 	}
 };
 
-export const createDetailedFormInfo = async (
+export const restaurantCtrl = async (
 	req: Request,
 	res: Response,
 	next: NextFunction
 ) => {
+	const fileData = req.file;
+	if (!fileData) {
+		return res.status(404).send('Image not uploaded');
+	}
 	try {
-		
+		const { error } = joi
+			.object({
+				name,
+				address,
+				city,
+				district,
+				wards,
+				cuisine,
+				statusOpen,
+				branches,
+				restaurantImg,
+			})
+			.validate({ ...req.body, restaurantImg: fileData });
+
+		if (error) {
+			return badRequest(error.details[0].message, res);
+		}
+
+		const restaurantImgUrl = await uploadToCloudinary(fileData);
+
+		await OnCreateRestaurant({
+			...req.body,
+			restaurantUrl: getResized(restaurantImgUrl.secure_url),
+		})
+			.then((data) => {
+				return res.status(200).json({
+					data,
+				});
+			})
+			.catch((err) => {
+				return next(err);
+			});
 	} catch (error) {
 		return next(error);
 	}
 };
+
+// export const createDetailedFormInfo = async (
+// 	req: Request,
+// 	res: Response,
+// 	next: NextFunction
+// ) => {
+// 	try {
+// 		const fileData = req.files as {
+// 			[fieldname: string]: Express.Multer.File[];
+// 		};
+// 	} catch (error) {
+// 		return next(error);
+// 	}
+// };

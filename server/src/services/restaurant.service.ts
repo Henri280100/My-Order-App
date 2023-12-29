@@ -169,7 +169,7 @@ export const EmailVerificationService = (
 		}
 	});
 
-export const LoginService = ({
+export const MerchantLoginService = ({
 	email,
 	password,
 }: {
@@ -249,40 +249,186 @@ export const StoreDetailInfoService = ({
 }): Promise<StoreDetailInfoResponse> =>
 	new Promise(async (resolve, reject) => {
 		try {
-			const checkIsPartnerCreated = await queryData.findOne(db.RestaurantAuth, {
+			const createStore = await queryData.create(db.PartnerInformation, {
+				id: generateUUID(),
+				contactName,
 				phoneNo,
+				storeName,
+				address,
+				city,
+				district,
+				wards,
+				storeImg,
+				kitchenImg,
+				menuImg,
+				businessCode,
 			});
 
-			if (!checkIsPartnerCreated) {
-				return reject(
-					'Please finish the first step to complete the assignment'
-				);
-			} else {
-				const createStore = await queryData.create(db.PartnerInformation, {
-					id: generateUUID(),
-					contactName,
-					phoneNo,
-					storeName,
-					address,
-					city,
-					district,
-					wards,
-					storeImg,
-					kitchenImg,
-					menuImg,
-					businessCode,
+			if (createStore) {
+				resolve({
+					success: true,
+					mess: 'You have successfully fill up your store information, please continue fill up your detail information',
+					err: ErrorCodes.SUCCESS,
+					result: createStore,
 				});
+			} else {
+				return reject('Failed to create your information, please try again');
+			}
+			// const checkIsPartnerCreated = await queryData.findOne(db.RestaurantAuth, {
+			// 	phoneNo,
+			// });
 
-				if (createStore) {
-					resolve({
-						success: true,
-						mess: 'You have successfully fill up your store information, please continue fill up your detail information',
-						err: ErrorCodes.SUCCESS,
-						result: createStore,
-					});
-				} else {
-					return reject('Failed to create your information, please try again');
+			// if (!checkIsPartnerCreated) {
+			// 	return reject(
+			// 		'Please finish the first step to complete the assignment'
+			// 	);
+			// } else {
+
+			// }
+		} catch (error) {
+			return reject(error);
+		}
+	});
+
+export const OnCreateRestaurant = ({
+	partnerId,
+	ratingId,
+	name,
+	...restaurantData
+}: {
+	partnerId: string;
+	ratingId: number;
+	name: string;
+}): Promise<InfoResponse> =>
+	new Promise(async (resolve, reject) => {
+		try {
+			// const findPartners = await queryData.findAll(db.PartnerInformation);
+			// const findRating = await queryData.findAll(db.Rating);
+
+			const [findPartners, findRating] = await Promise.all([
+				await queryData.findAll(db.PartnerInformation),
+				await queryData.findAll(db.Rating),
+			]);
+
+			for (let i = 0; i < findPartners.length; i++) {
+				//console.log(findPartners[i].dataValues.id);
+				for (let j = 0; i < findRating.length; j++) {
+					if (
+						findPartners[i].dataValues.id !== undefined &&
+						findRating[j].dataValues.id !== undefined
+					) {
+						const createData = await queryData.create(db.Restaurant, {
+							partnerId: findPartners[i].dataValues.id,
+							ratingId: findRating[j].dataValues.id,
+							name,
+							restaurantData,
+						});
+						if (createData) {
+							resolve({
+								success: true,
+								err: ErrorCodes.SUCCESS,
+								mess: 'Successfully',
+								result: createData,
+							});
+						} else {
+							return reject('Failed');
+						}
+					} else {
+						return reject('Please check again');
+					}
 				}
+			}
+
+			// for (const entry of Object.keys(findPartners)) {
+			// 	for (let value in findPartners[1]) {
+			// 		console.log(findPartners[entry][value]);
+			// 	}
+			// }
+		} catch (error) {
+			return reject(error);
+		}
+	});
+
+export const OnCreateOwnerData = ({
+	idFrontFaceUrl,
+	idBackFaceUrl,
+}: {
+	idFrontFaceUrl: string;
+	idBackFaceUrl: string;
+}): Promise<InfoResponse> =>
+	new Promise(async (resolve, reject) => {
+		try {
+			const createOwner = await queryData.create(db.OwnerInformation, {
+				idFrontFaceUrl,
+				idBackFaceUrl,
+			});
+
+			if (createOwner) {
+				resolve({
+					success: true,
+					err: ErrorCodes.SUCCESS,
+					mess: 'Successfully',
+					result: createOwner,
+				});
+			} else {
+				return reject('Failed');
+			}
+		} catch (error) {
+			return reject(error);
+		}
+	});
+export const OnCreateContractData = ({
+	fullname,
+	idCard,
+	...contractData
+}: {
+	fullname: string;
+	idCard: number;
+}): Promise<InfoResponse> =>
+	new Promise(async (resolve, reject) => {
+		try {
+			const createContract = await queryData.create(db.ContractIn, {
+				fullname,
+				idCard: idCard,
+				contractData,
+			});
+
+			if (createContract) {
+				resolve({
+					success: true,
+					err: ErrorCodes.SUCCESS,
+					mess: 'Successfully',
+					result: createContract,
+				});
+			} else {
+				return reject('Failed');
+			}
+		} catch (error) {
+			return reject(error);
+		}
+	});
+export const OnCreateBankData = ({
+	accountOwner,
+	...bankData
+}: {
+	accountOwner: string;
+}): Promise<InfoResponse> =>
+	new Promise(async (resolve, reject) => {
+		try {
+			const createBank = await queryData.create(db.BankInformation, {
+				accountOwner,
+				bankData,
+			});
+
+			if (createBank) {
+				resolve({
+					success: true,
+					err: ErrorCodes.SUCCESS,
+					mess: 'Successfully',
+					result: createBank,
+				});
+			} else {
+				return reject('Failed');
 			}
 		} catch (error) {
 			return reject(error);
@@ -290,12 +436,19 @@ export const StoreDetailInfoService = ({
 	});
 
 // Next step to detail info
-export const createDetailInfo = ({
-	restaurantData: { name, ...restaurantInfoData },
+export const CreateDetailInfo = ({
+	restaurantName,
+	ownerId,
+	cardId,
+	bankId,
 	ownerData: { idFrontFaceUrl, idBackFaceUrl },
 	contractData: { fullname, ...contractInfoData },
 	bankData: { accountOwner, ...bankInfoData },
 }: {
+	restaurantName: string;
+	ownerId: number;
+	cardId: number;
+	bankId: number;
 	restaurantData: { name: string };
 	ownerData: { idFrontFaceUrl: string; idBackFaceUrl: string };
 	contractData: { fullname: string };
@@ -303,8 +456,42 @@ export const createDetailInfo = ({
 }): Promise<InfoResponse> =>
 	new Promise(async (resolve, reject) => {
 		try {
-
+			// const createDetailInfo = await queryData.create(
+			// 	db.DetailedInformationForm,
+			// 	{
+			// 		restaurantData: { name: restaurantName, restaurantInfoData },
+			// 		ownerInformationData: {
+			// 			idFrontFaceUrl,
+			// 			idBackFaceUrl,
+			// 		},
+			// 		contractInformationData: {
+			// 			fullname,
+			// 			contractInfoData,
+			// 		},
+			// 		bankInformationData: {
+			// 			accountOwner,
+			// 			bankInfoData,
+			// 		},
+			// 	},
+			// 	[
+			// 		{ model: db.Restaurant, as: 'restaurantData' },
+			// 		{ model: db.OwnerInformation, as: 'ownerInformationData' },
+			// 		{ model: db.ContractInformation, as: 'cardInformationData' },
+			// 		{ model: db.BankInformation, as: 'bankInformationData' },
+			// 	]
+			// );
+			// if (createDetailInfo) {
+			// 	resolve({
+			// 		success: true,
+			// 		err: ErrorCodes.SUCCESS,
+			// 		mess: 'Successfully',
+			// 		result: createDetailInfo,
+			// 	});
+			// }
 		} catch (error) {
 			return reject(error);
 		}
 	});
+
+//TODO: Create a rating service to manage all the ratings from reviewers
+export const OnRatingService = () => {};

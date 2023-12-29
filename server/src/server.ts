@@ -2,7 +2,7 @@ import express, { Application } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import * as dotenv from 'dotenv';
-import initRoutes from './routes';
+import initRoutes from './routes/router';
 import cookieSession from 'cookie-session';
 
 

@@ -90,9 +90,14 @@ export interface InfoResponse {
 	result?: any;
 }
 
-
-
 // restaurant end
+
+export interface CustomersResponse {
+	success: boolean;
+	err: number;
+	mess: string;
+	result: any;
+}
 
 // Delivery driver response
 

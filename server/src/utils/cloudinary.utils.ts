@@ -14,13 +14,10 @@ cloudinary.config({
 	api_secret: '9Il5OK75WHhAc440DQwvf2HSk0M',
 });
 
-export const uploadToCloudinary = (
-	file: Express.Multer.File,
-	folders: string
-) => {
+export const uploadToCloudinary = (file: Express.Multer.File) => {
 	return new Promise<UploadApiResponse>((resolve, reject) => {
 		let stream = cloudinary.uploader.upload_stream(
-			{ folder: folders ? 'store_img' : 'user_img' },
+			{ folder: 'store_img' },
 
 			(error: any, result: any) => {
 				if (result) {

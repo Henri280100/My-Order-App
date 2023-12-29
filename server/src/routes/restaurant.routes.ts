@@ -2,6 +2,7 @@ import express from 'express';
 import {
 	merchantLoginCtrl,
 	partnerRegisterCtrl,
+	restaurantCtrl,
 	storeDetailInfoCtrl,
 	verifyEmailCtrl,
 } from '../controllers';
@@ -20,7 +21,12 @@ router.post(
 	]),
 	storeDetailInfoCtrl
 );
-router.post('/new-partner/detail-info');
+router.post(
+	'/new-partner/restaurant',
+	upload.single('restaurantImg'),
+	restaurantCtrl
+);
+router.post('/new-partner/detail-form');
 // Merchant
 router.post('/merchant-login', merchantLoginCtrl);
 // get merchant information

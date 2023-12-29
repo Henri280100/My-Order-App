@@ -51,6 +51,13 @@ const businessCode = joi.required();
 const kitchenImg = joi.required();
 const menuImg = joi.required();
 const storeImg = joi.required();
+
+const name = joi.string().min(3).label('name').max(30).required();
+const cuisine = joi.string().required();
+const statusOpen = joi.string().required();
+const branches = joi.number().required();
+const restaurantImg = joi.required();
+
 export {
 	email,
 	fullname,
@@ -72,4 +79,9 @@ export {
 	storeImg,
 	phoneNo,
 	businessCode,
+	name,
+	cuisine,
+	statusOpen,
+	branches,
+	restaurantImg,
 };

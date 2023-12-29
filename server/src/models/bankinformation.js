@@ -9,6 +9,9 @@ module.exports = (sequelize, DataTypes) => {
 		 */
 		static associate(models) {
 			// define association here
+			BankInformation.hasOne(models.DetailedInformationForm, {
+				foreignKey: 'bankId',
+			});
 		}
 	}
 	BankInformation.init(

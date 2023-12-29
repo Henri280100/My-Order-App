@@ -4,9 +4,9 @@ module.exports = {
 		await queryInterface.createTable('PartnerInformations', {
 			id: {
 				allowNull: false,
-				autoIncrement: true,
+				// autoIncrement: true,
 				primaryKey: true,
-				type: Sequelize.INTEGER,
+				type: Sequelize.STRING,
 			},
 			// restaurantId: {
 			// 	type: Sequelize.INTEGER,

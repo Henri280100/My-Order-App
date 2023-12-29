@@ -8,9 +8,14 @@ module.exports = {
 				primaryKey: true,
 				type: Sequelize.INTEGER,
 			},
-
+			reviewersName: {
+				type: Sequelize.STRING,
+			},
 			rating: {
 				type: Sequelize.FLOAT,
+			},
+			comments: {
+				type: Sequelize.STRING,
 			},
 			createdAt: {
 				allowNull: false,

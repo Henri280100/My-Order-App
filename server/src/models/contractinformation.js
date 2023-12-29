@@ -12,6 +12,14 @@ module.exports = (sequelize, DataTypes) => {
 			// ContractInformation.belongsTo(models.PartnerInformation, {
 			// 	foreignKey: 'partnerInformationId',
 			// });
+
+			ContractInformation.hasOne(models.OwnerInformation, {
+				foreignKey: 'idCard',
+			});
+
+			// ContractInformation.hasOne(models.DetailedInformationForm, {
+			// 	foreignKey: 'cardId',
+			// });
 		}
 	}
 	ContractInformation.init(

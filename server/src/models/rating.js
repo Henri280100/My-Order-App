@@ -17,6 +17,11 @@ module.exports = (sequelize, DataTypes) => {
 			// 	foreignKey: 'restaurantId',
 			// 	as: 'restaurantData',
 			// });
+
+			Rating.hasMany(models.Restaurant, {
+				foreignKey: 'ratingId',
+				as: 'restaurant',
+			});
 		}
 	}
 	Rating.init(

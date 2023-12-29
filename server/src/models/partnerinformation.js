@@ -15,6 +15,11 @@ module.exports = (sequelize, DataTypes) => {
 				as: 'businessData',
 			});
 
+			PartnerInformation.hasMany(models.Restaurant, {
+				foreignKey: 'partnerId',
+				as: 'restaurant',
+			});
+
 			PartnerInformation.hasOne(models.RestaurantAuth, {
 				foreignKey: 'phoneNo',
 			});

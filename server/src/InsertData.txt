@@ -36,3 +36,56 @@ INSERT INTO Discounts (title, description, expires) VALUES ('Offers for new frie
 INSERT INTO delivery_options (priorityName, priorityTimes, prices) VALUES ('Priority', '< 35mins', 65.000);
 INSERT INTO delivery_options (priorityName, priorityTimes, prices) VALUES ('Standard', '35mins', 60.000);
 INSERT INTO delivery_options (priorityName, priorityTimes, prices) VALUES ('Saver', '55mins', 57.000);
+
+
+INSERT into ratings (reviewersName, rating, comments) VALUES ('HenriPP', 4.0, 'Lam an nhu cl');
+INSERT INTO ratings (reviewersName, rating, comments) VALUES ('HuyNG', 5.0, 'Chac co minh tui thay cai quan nay dang bi don di!');
+INSERT INTO ratings (reviewersName, rating, comments) VALUES ('KhoaPham', 6.0, 'Co that su la biet nau khong vay!?');
+                                                             
+
+[
+  PartnerInformation {
+    dataValues: {
+      id: '04a9e308-bdea-4b08-abb6-9e7973243a56',
+      contactName: 'pasdasdasd',
+      phoneNo: '+84905339064',
+      storeName: 'asdasdasa',
+      address: 'dasdasda',
+      city: 'asdqwe',
+      district: 'asd',
+      wards: '3d3',
+      storeImg: 'https://res.cloudinary.com/didyifgtm/image/upload/v1703557675/store_img/vq6xgbiaijxmwd7qxqdp.jpg',
+      kitchenImg: 'https://res.cloudinary.com/didyifgtm/image/upload/v1703557674/store_img/qaw5wffdscrgcysqqhpx.png',
+      menuImg: 'https://res.cloudinary.com/didyifgtm/image/upload/v1703557673/store_img/awpkwgeuzbtfg1eo9glf.jpg',
+      businessCode: 'SP',
+      createdAt: 2023-12-26T02:27:57.000Z,
+      updatedAt: 2023-12-26T02:27:57.000Z
+    },
+    _previousDataValues: {
+      id: '04a9e308-bdea-4b08-abb6-9e7973243a56',
+      contactName: 'pasdasdasd',
+      phoneNo: '+84905339064',
+      storeName: 'asdasdasa',
+      address: 'dasdasda',
+      city: 'asdqwe',
+      district: 'asd',
+      wards: '3d3',
+      storeImg: 'https://res.cloudinary.com/didyifgtm/image/upload/v1703557675/store_img/vq6xgbiaijxmwd7qxqdp.jpg',
+      kitchenImg: 'https://res.cloudinary.com/didyifgtm/image/upload/v1703557674/store_img/qaw5wffdscrgcysqqhpx.png',
+      menuImg: 'https://res.cloudinary.com/didyifgtm/image/upload/v1703557673/store_img/awpkwgeuzbtfg1eo9glf.jpg',
+      businessCode: 'SP',
+      createdAt: 2023-12-26T02:27:57.000Z,
+      updatedAt: 2023-12-26T02:27:57.000Z
+    },
+    uniqno: 1,
+    _changed: Set(0) {},
+    _options: {
+      isNewRecord: false,
+      _schema: null,
+      _schemaDelimiter: '',
+      raw: true,
+      attributes: [Array]
+    },
+    isNewRecord: false
+  }
+]

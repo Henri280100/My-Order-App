@@ -9,7 +9,9 @@ module.exports = {
 				type: Sequelize.INTEGER,
 			},
 			partnerId: {
-				allowNull: false,
+				type: Sequelize.INTEGER,
+			},
+			ratingId: {
 				type: Sequelize.INTEGER,
 			},
 			name: {
@@ -39,14 +41,6 @@ module.exports = {
 			restaurantImg: {
 				type: Sequelize.STRING,
 			},
-			rating: {
-				type: Sequelize.FLOAT,
-				allowNull: false,
-			},
-			reviewsId: {
-				type: Sequelize.STRING,
-			},
-
 			createdAt: {
 				allowNull: false,
 				type: Sequelize.DATE,
